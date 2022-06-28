@@ -1,5 +1,5 @@
 export class Resources {
-    money = 100000;
+    money = 10;
 
     cryptCoinMinerAlgorithmLevel = 1;
     cryptCoinMinerHashLevel = 1;

@@ -758,7 +758,7 @@ define("Game/Classes/Resources", ["require", "exports"], function (require, expo
     exports.Resources = void 0;
     var Resources = /** @class */ (function () {
         function Resources() {
-            this.money = 100000;
+            this.money = 10;
             this.cryptCoinMinerAlgorithmLevel = 1;
             this.cryptCoinMinerHashLevel = 1;
             this.cryptCoinMinerCpuLevel = 1;
