@@ -1,0 +1,31 @@
+html {
+    background-color: rgb(0, 128, 128);
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+}
+
+body {
+    margin: 0;
+}
+
+#images {
+    display: none;
+}
+
+@font-face {
+    font-family: 'w95fa';
+    src: url('w95fa.woff2') format('woff2'), url('w95fa.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'PixelOperator';
+    src: url('PixelOperator.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+canvas {
+    -webkit-font-smoothing: none;
+}
