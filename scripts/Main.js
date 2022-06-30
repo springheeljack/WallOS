@@ -390,32 +390,6 @@ define("Boilerplate/Classes/Images", ["require", "exports"], function (require, 
     }());
     exports.Images = Images;
 });
-define("Boilerplate/Enums/Scroll", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Scroll = void 0;
-    var Scroll;
-    (function (Scroll) {
-        Scroll[Scroll["None"] = 1] = "None";
-        Scroll[Scroll["Up"] = 2] = "Up";
-        Scroll[Scroll["Down"] = 3] = "Down";
-    })(Scroll = exports.Scroll || (exports.Scroll = {}));
-});
-define("Boilerplate/Classes/MouseState", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.MouseState = void 0;
-    var MouseState = /** @class */ (function () {
-        function MouseState(position, left, right, scroll) {
-            this.position = position;
-            this.left = left;
-            this.right = right;
-            this.scroll = scroll;
-        }
-        return MouseState;
-    }());
-    exports.MouseState = MouseState;
-});
 define("Boilerplate/Enums/MouseButton", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -428,6 +402,44 @@ define("Boilerplate/Enums/MouseButton", ["require", "exports"], function (requir
         MouseButton[MouseButton["Back"] = 3] = "Back";
         MouseButton[MouseButton["Forward"] = 4] = "Forward";
     })(MouseButton = exports.MouseButton || (exports.MouseButton = {}));
+});
+define("Boilerplate/Enums/Scroll", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Scroll = void 0;
+    var Scroll;
+    (function (Scroll) {
+        Scroll[Scroll["None"] = 1] = "None";
+        Scroll[Scroll["Up"] = 2] = "Up";
+        Scroll[Scroll["Down"] = 3] = "Down";
+    })(Scroll = exports.Scroll || (exports.Scroll = {}));
+});
+define("Boilerplate/Classes/MouseState", ["require", "exports", "Boilerplate/Enums/Scroll", "Boilerplate/Classes/Vector2"], function (require, exports, Scroll_1, Vector2_5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.MouseState = void 0;
+    var MouseState = /** @class */ (function () {
+        function MouseState() {
+            this.position = Vector2_5.Vector2.zero();
+            this.scroll = Scroll_1.Scroll.None;
+            this.buttonDown = {};
+            this.unusedClick = {};
+        }
+        MouseState.prototype.isButtonDown = function (mouseButton) {
+            return this.buttonDown[mouseButton] === true;
+        };
+        MouseState.prototype.isButtonUp = function (mouseButton) {
+            return !this.isButtonDown(mouseButton);
+        };
+        MouseState.prototype.hasUnusedClick = function (mouseButton) {
+            return this.unusedClick[mouseButton] === true;
+        };
+        MouseState.prototype.setClickUsed = function (mouseButton) {
+            this.unusedClick[mouseButton] = false;
+        };
+        return MouseState;
+    }());
+    exports.MouseState = MouseState;
 });
 define("Boilerplate/Enums/Keys", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -443,8 +455,8 @@ define("Boilerplate/Classes/KeyboardState", ["require", "exports"], function (re
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.KeyboardState = void 0;
     var KeyboardState = /** @class */ (function () {
-        function KeyboardState(keyStates) {
-            this.keyStates = keyStates;
+        function KeyboardState() {
+            this.keyStates = {};
         }
         KeyboardState.prototype.isKeyDown = function (key) {
             return this.keyStates[key] === true;
@@ -462,38 +474,25 @@ define("Boilerplate/Classes/KeyboardState", ["require", "exports"], function (re
     }());
     exports.KeyboardState = KeyboardState;
 });
-define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/MouseState", "Boilerplate/Enums/MouseButton", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Scroll", "Boilerplate/Classes/KeyboardState"], function (require, exports, MouseState_1, MouseButton_1, Vector2_5, Scroll_1, KeyboardState_1) {
+define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/MouseState", "Boilerplate/Enums/Scroll", "Boilerplate/Classes/KeyboardState"], function (require, exports, MouseState_1, Scroll_2, KeyboardState_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Input = void 0;
     var Input = /** @class */ (function () {
         function Input(canvas) {
             var _this = this;
-            this.leftUsed = false;
-            this.rightUsed = false;
-            this.previousMouseState = new MouseState_1.MouseState(Vector2_5.Vector2.zero(), false, false, Scroll_1.Scroll.None);
-            this.currentMouseState = new MouseState_1.MouseState(Vector2_5.Vector2.zero(), false, false, Scroll_1.Scroll.None);
-            this.runningMouseState = new MouseState_1.MouseState(Vector2_5.Vector2.zero(), false, false, Scroll_1.Scroll.None);
-            this.previousKeyboardState = new KeyboardState_1.KeyboardState({});
-            this.currentKeyboardState = new KeyboardState_1.KeyboardState({});
-            this.runningKeyboardState = new KeyboardState_1.KeyboardState({});
+            this.previousMouseState = new MouseState_1.MouseState();
+            this.currentMouseState = new MouseState_1.MouseState();
+            this.runningMouseState = new MouseState_1.MouseState();
+            this.previousKeyboardState = new KeyboardState_1.KeyboardState();
+            this.currentKeyboardState = new KeyboardState_1.KeyboardState();
+            this.runningKeyboardState = new KeyboardState_1.KeyboardState();
             canvas.addEventListener('mousedown', function (event) {
-                if (event.button === MouseButton_1.MouseButton.Left) {
-                    _this.runningMouseState.left = true;
-                }
-                else if (event.button === MouseButton_1.MouseButton.Right) {
-                    _this.runningMouseState.right = true;
-                }
+                _this.runningMouseState.buttonDown[event.button] = true;
             });
             canvas.addEventListener('mouseup', function (event) {
-                if (event.button === MouseButton_1.MouseButton.Left) {
-                    _this.runningMouseState.left = false;
-                    _this.leftUsed = false;
-                }
-                else if (event.button === MouseButton_1.MouseButton.Right) {
-                    _this.runningMouseState.right = false;
-                    _this.rightUsed = false;
-                }
+                _this.runningMouseState.buttonDown[event.button] = false;
+                _this.runningMouseState.unusedClick[event.button] = true;
             });
             canvas.addEventListener('mousemove', function (event) {
                 var target = event.currentTarget;
@@ -504,9 +503,9 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
             canvas.addEventListener('contextmenu', function (event) { return event.preventDefault(); });
             canvas.addEventListener('wheel', function (event) {
                 if (event.deltaY < 0)
-                    _this.runningMouseState.scroll = Scroll_1.Scroll.Up;
+                    _this.runningMouseState.scroll = Scroll_2.Scroll.Up;
                 else if (event.deltaY > 0)
-                    _this.runningMouseState.scroll = Scroll_1.Scroll.Down;
+                    _this.runningMouseState.scroll = Scroll_2.Scroll.Down;
             });
             window.addEventListener('keydown', function (event) {
                 _this.runningKeyboardState.setKeyDown(event.code);
@@ -516,58 +515,36 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
             });
         }
         Input.prototype.update = function () {
+            //Update mouse states
             this.previousMouseState = this.currentMouseState;
-            this.currentMouseState = new MouseState_1.MouseState(this.runningMouseState.position.clone(), this.runningMouseState.left, this.runningMouseState.right, this.runningMouseState.scroll);
-            this.runningMouseState.scroll = Scroll_1.Scroll.None;
+            this.currentMouseState = new MouseState_1.MouseState();
+            this.currentMouseState.position = this.runningMouseState.position.clone();
+            this.currentMouseState.scroll = this.runningMouseState.scroll;
+            this.currentMouseState.buttonDown = this.runningMouseState.buttonDown;
+            this.currentMouseState.unusedClick = this.runningMouseState.unusedClick;
+            this.runningMouseState.scroll = Scroll_2.Scroll.None;
+            //Update keyboard states
             this.previousKeyboardState = this.currentKeyboardState;
             this.currentKeyboardState = this.runningKeyboardState;
-            this.runningKeyboardState = new KeyboardState_1.KeyboardState({});
+            this.runningKeyboardState = new KeyboardState_1.KeyboardState();
         };
         Input.prototype.getMousePosition = function () {
             return this.currentMouseState.position;
         };
-        Input.prototype.getLeftUsed = function () {
-            return this.leftUsed;
-        };
-        Input.prototype.getRightUsed = function () {
-            return this.rightUsed;
-        };
-        Input.prototype.setLeftUsed = function () {
-            this.leftUsed = true;
-        };
-        Input.prototype.setRightUsed = function () {
-            this.rightUsed = true;
-        };
-        Input.prototype.isUp = function (mouseButton) {
-            if (mouseButton === MouseButton_1.MouseButton.Left)
-                return !this.currentMouseState.left;
-            if (mouseButton === MouseButton_1.MouseButton.Right)
-                return !this.currentMouseState.right;
-            return false;
-        };
-        Input.prototype.isDown = function (mouseButton) {
-            if (mouseButton === MouseButton_1.MouseButton.Left)
-                return this.currentMouseState.left;
-            if (mouseButton === MouseButton_1.MouseButton.Right)
-                return this.currentMouseState.right;
-            return false;
-        };
-        Input.prototype.isClicked = function (mouseButton) {
-            if (mouseButton === MouseButton_1.MouseButton.Left)
-                return this.currentMouseState.left && !this.previousMouseState.left;
-            if (mouseButton === MouseButton_1.MouseButton.Right)
-                return this.currentMouseState.right && !this.previousMouseState.right;
-            return false;
-        };
-        Input.prototype.isReleased = function (mouseButton) {
-            if (mouseButton === MouseButton_1.MouseButton.Left)
-                return !this.currentMouseState.left && this.previousMouseState.left;
-            if (mouseButton === MouseButton_1.MouseButton.Right)
-                return !this.currentMouseState.right && this.previousMouseState.right;
-            return false;
-        };
-        Input.prototype.getScroll = function () {
+        Input.prototype.getMouseScroll = function () {
             return this.currentMouseState.scroll;
+        };
+        Input.prototype.isButtonUp = function (mouseButton) {
+            return this.currentMouseState.isButtonUp(mouseButton);
+        };
+        Input.prototype.isButtonDown = function (mouseButton) {
+            return this.currentMouseState.isButtonDown(mouseButton);
+        };
+        Input.prototype.hasUnusedClick = function (mouseButton) {
+            return this.currentMouseState.hasUnusedClick(mouseButton);
+        };
+        Input.prototype.setClickUsed = function (mouseButton) {
+            this.currentMouseState.setClickUsed(mouseButton);
         };
         Input.prototype.isKeyDown = function (key) {
             return this.currentKeyboardState.isKeyDown(key);
@@ -677,7 +654,7 @@ define("Game/Modules/GameColour", ["require", "exports", "Boilerplate/Classes/Co
         GameColour.textConsole = new Colour_1.Colour(0, 255, 0);
     })(GameColour = exports.GameColour || (exports.GameColour = {}));
 });
-define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Modules/GameColour"], function (require, exports, Rectangle_1, Vector2_6, Align_2, Fonts_1, MouseButton_2, ImageNames_1, GameColour_1) {
+define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Modules/GameColour"], function (require, exports, Rectangle_1, Vector2_6, Align_2, Fonts_1, MouseButton_1, ImageNames_1, GameColour_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Panel = void 0;
@@ -702,8 +679,9 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
             this.closeImage = images.getImage(ImageNames_1.ImageNames.Close);
         }
         Panel.prototype.update = function (input) {
-            if (input.isClicked(MouseButton_2.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+            if (input.hasUnusedClick(MouseButton_1.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
                 this.toClose = true;
+                input.setClickUsed(MouseButton_1.MouseButton.Left);
             }
             else {
                 this.updatePanel(this.panelInnerRectangle);
@@ -776,7 +754,7 @@ define("Game/Classes/Resources", ["require", "exports"], function (require, expo
     }());
     exports.Resources = Resources;
 });
-define("Game/Classes/TextButton", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Modules/GameColour"], function (require, exports, Rectangle_2, Align_3, Fonts_2, MouseButton_3, GameColour_2) {
+define("Game/Classes/TextButton", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Modules/GameColour"], function (require, exports, Rectangle_2, Align_3, Fonts_2, MouseButton_2, GameColour_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TextButton = void 0;
@@ -805,7 +783,8 @@ define("Game/Classes/TextButton", ["require", "exports", "Boilerplate/Classes/Re
         };
         TextButton.prototype.update = function (input, offset) {
             this.setIsEnabled();
-            if (this.isEnabled && input.isClicked(MouseButton_3.MouseButton.Left) && input.getMousePosition().intersectsRectangle(new Rectangle_2.Rectangle(offset.add(this.rectangle.position), this.rectangle.size.addNumber(8)))) {
+            if (this.isEnabled && input.hasUnusedClick(MouseButton_2.MouseButton.Left) && input.getMousePosition().intersectsRectangle(new Rectangle_2.Rectangle(offset.add(this.rectangle.position), this.rectangle.size.addNumber(8)))) {
+                input.setClickUsed(MouseButton_2.MouseButton.Left);
                 this.onClick();
             }
         };
@@ -867,7 +846,7 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
     var CryptCoinMinerPanel = /** @class */ (function (_super) {
         __extends(CryptCoinMinerPanel, _super);
         function CryptCoinMinerPanel(images, resources, input) {
-            var _this = _super.call(this, Programs_1.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_2.ImageNames.CryptCoinMiner), new Vector2_7.Vector2(400, 0), new Vector2_7.Vector2(480, 400), images) || this;
+            var _this = _super.call(this, Programs_1.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_2.ImageNames.CryptCoinMiner), new Vector2_7.Vector2(1100, 0), new Vector2_7.Vector2(480, 400), images) || this;
             _this.resources = resources;
             _this.input = input;
             _this.isMining = false;
@@ -1287,7 +1266,7 @@ define("Game/Classes/StartMenuEntry", ["require", "exports"], function (require,
     }());
     exports.StartMenuEntry = StartMenuEntry;
 });
-define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/StartMenuEntry"], function (require, exports, Rectangle_6, Vector2_11, Align_8, Fonts_7, MouseButton_4, ImageNames_6, Programs_6, GameColour_7, StartMenuEntry_1) {
+define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/StartMenuEntry"], function (require, exports, Rectangle_6, Vector2_11, Align_8, Fonts_7, MouseButton_3, ImageNames_6, Programs_6, GameColour_7, StartMenuEntry_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StartMenu = void 0;
@@ -1347,9 +1326,11 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
                 }
             }
             this.selectedEntries = newSelectedEntries;
-            if (input.isClicked(MouseButton_4.MouseButton.Left)) {
-                if (this.startButtonRect1.intersectsPoint(input.getMousePosition()))
+            if (input.hasUnusedClick(MouseButton_3.MouseButton.Left)) {
+                if (this.startButtonRect1.intersectsPoint(input.getMousePosition())) {
                     this.startMenuOpen = !this.startMenuOpen;
+                    input.setClickUsed(MouseButton_3.MouseButton.Left);
+                }
                 else {
                     for (var i = 0; i < installed.length; i++) {
                         var entryRectangle = new Rectangle_6.Rectangle(new Vector2_11.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_11.Vector2(276, 64));
@@ -1358,10 +1339,13 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
                             if (entry.program != null) {
                                 runner.runProgram(entry.program);
                                 this.startMenuOpen = false;
+                                input.setClickUsed(MouseButton_3.MouseButton.Left);
                             }
                         }
                     }
                 }
+                if (this.startMenuRectangle1.intersectsPoint(input.getMousePosition()))
+                    input.setClickUsed(MouseButton_3.MouseButton.Left);
             }
         };
         StartMenu.prototype.draw = function (context) {

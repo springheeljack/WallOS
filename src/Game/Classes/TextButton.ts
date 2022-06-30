@@ -39,8 +39,9 @@ export class TextButton {
     update(input: Input, offset: Vector2) {
         this.setIsEnabled();
 
-        if (this.isEnabled && input.isClicked(MouseButton.Left) && input.getMousePosition().intersectsRectangle(
+        if (this.isEnabled && input.hasUnusedClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(
             new Rectangle(offset.add(this.rectangle.position), this.rectangle.size.addNumber(8)))) {
+            input.setClickUsed(MouseButton.Left);
             this.onClick();
         }
     }

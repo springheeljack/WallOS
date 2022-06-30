@@ -57,8 +57,9 @@ export abstract class Panel {
     }
 
     update(input: Input) {
-        if (input.isClicked(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+        if (input.hasUnusedClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
             this.toClose = true;
+            input.setClickUsed(MouseButton.Left);
         } else {
             this.updatePanel(this.panelInnerRectangle);
         }

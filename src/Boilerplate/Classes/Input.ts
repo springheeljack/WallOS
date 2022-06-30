@@ -10,40 +10,26 @@ export class Input {
     private currentMouseState: MouseState;
     private runningMouseState: MouseState;
 
-    private leftUsed = false;
-    private rightUsed = false;
-
     private previousKeyboardState: KeyboardState;
     private currentKeyboardState: KeyboardState;
     private runningKeyboardState: KeyboardState;
 
     constructor(canvas: HTMLCanvasElement) {
-        this.previousMouseState = new MouseState(Vector2.zero(), false, false, Scroll.None);
-        this.currentMouseState = new MouseState(Vector2.zero(), false, false, Scroll.None);
-        this.runningMouseState = new MouseState(Vector2.zero(), false, false, Scroll.None);
+        this.previousMouseState = new MouseState();
+        this.currentMouseState = new MouseState();
+        this.runningMouseState = new MouseState();
 
-        this.previousKeyboardState = new KeyboardState({});
-        this.currentKeyboardState = new KeyboardState({});
-        this.runningKeyboardState = new KeyboardState({});
+        this.previousKeyboardState = new KeyboardState();
+        this.currentKeyboardState = new KeyboardState();
+        this.runningKeyboardState = new KeyboardState();
 
         canvas.addEventListener('mousedown', event => {
-            if (event.button === MouseButton.Left) {
-                this.runningMouseState.left = true;
-            }
-            else if (event.button === MouseButton.Right) {
-                this.runningMouseState.right = true;
-            }
+            this.runningMouseState.buttonDown[event.button] = true;
         });
 
         canvas.addEventListener('mouseup', event => {
-            if (event.button === MouseButton.Left) {
-                this.runningMouseState.left = false;
-                this.leftUsed = false;
-            }
-            else if (event.button === MouseButton.Right) {
-                this.runningMouseState.right = false;
-                this.rightUsed = false;
-            }
+            this.runningMouseState.buttonDown[event.button] = false;
+            this.runningMouseState.unusedClick[event.button] = true;
         });
 
         canvas.addEventListener('mousemove', event => {
@@ -72,74 +58,45 @@ export class Input {
     }
 
     update() {
+        //Update mouse states
         this.previousMouseState = this.currentMouseState;
-        this.currentMouseState = new MouseState(
-            this.runningMouseState.position.clone(),
-            this.runningMouseState.left,
-            this.runningMouseState.right,
-            this.runningMouseState.scroll);
+
+        this.currentMouseState = new MouseState();
+        this.currentMouseState.position = this.runningMouseState.position.clone();
+        this.currentMouseState.scroll = this.runningMouseState.scroll;
+        this.currentMouseState.buttonDown = this.runningMouseState.buttonDown;
+        this.currentMouseState.unusedClick = this.runningMouseState.unusedClick;
 
         this.runningMouseState.scroll = Scroll.None;
 
+        //Update keyboard states
         this.previousKeyboardState = this.currentKeyboardState;
         this.currentKeyboardState = this.runningKeyboardState;
-        this.runningKeyboardState = new KeyboardState({});
+        this.runningKeyboardState = new KeyboardState();
     }
 
     getMousePosition() {
         return this.currentMouseState.position;
     }
 
-    getLeftUsed() {
-        return this.leftUsed;
-    }
-
-    getRightUsed() {
-        return this.rightUsed;
-    }
-
-    setLeftUsed() {
-        this.leftUsed = true;
-    }
-
-    setRightUsed() {
-        this.rightUsed = true;
-    }
-
-    isUp(mouseButton: MouseButton) {
-        if (mouseButton === MouseButton.Left)
-            return !this.currentMouseState.left;
-        if (mouseButton === MouseButton.Right)
-            return !this.currentMouseState.right;
-        return false;
-    }
-
-    isDown(mouseButton: MouseButton) {
-        if (mouseButton === MouseButton.Left)
-            return this.currentMouseState.left;
-        if (mouseButton === MouseButton.Right)
-            return this.currentMouseState.right;
-        return false;
-    }
-
-    isClicked(mouseButton: MouseButton) {
-        if (mouseButton === MouseButton.Left)
-            return this.currentMouseState.left && !this.previousMouseState.left
-        if (mouseButton === MouseButton.Right)
-            return this.currentMouseState.right && !this.previousMouseState.right;
-        return false;
-    }
-
-    isReleased(mouseButton: MouseButton) {
-        if (mouseButton === MouseButton.Left)
-            return !this.currentMouseState.left && this.previousMouseState.left
-        if (mouseButton === MouseButton.Right)
-            return !this.currentMouseState.right && this.previousMouseState.right;
-        return false;
-    }
-
-    getScroll() {
+    getMouseScroll() {
         return this.currentMouseState.scroll;
+    }
+
+    isButtonUp(mouseButton: MouseButton) {
+        return this.currentMouseState.isButtonUp(mouseButton);
+    }
+
+    isButtonDown(mouseButton: MouseButton) {
+        return this.currentMouseState.isButtonDown(mouseButton);
+    }
+
+    hasUnusedClick(mouseButton: MouseButton) {
+        return this.currentMouseState.hasUnusedClick(mouseButton);
+    }
+
+    setClickUsed(mouseButton: MouseButton) {
+        this.currentMouseState.setClickUsed(mouseButton);
     }
 
     isKeyDown(key: Keys) {

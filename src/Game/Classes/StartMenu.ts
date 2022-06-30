@@ -85,9 +85,11 @@ export class StartMenu {
 
         this.selectedEntries = newSelectedEntries;
 
-        if (input.isClicked(MouseButton.Left)) {
-            if (this.startButtonRect1.intersectsPoint(input.getMousePosition()))
+        if (input.hasUnusedClick(MouseButton.Left)) {
+            if (this.startButtonRect1.intersectsPoint(input.getMousePosition())) {
                 this.startMenuOpen = !this.startMenuOpen;
+                input.setClickUsed(MouseButton.Left);
+            }
             else {
                 for (let i = 0; i < installed.length; i++) {
                     const entryRectangle = new Rectangle(new Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2(276, 64));
@@ -96,11 +98,14 @@ export class StartMenu {
                         if (entry.program != null) {
                             runner.runProgram(entry.program);
                             this.startMenuOpen = false;
+                            input.setClickUsed(MouseButton.Left);
                         }
                     }
                 }
-
             }
+
+            if (this.startMenuRectangle1.intersectsPoint(input.getMousePosition()))
+                input.setClickUsed(MouseButton.Left);
         }
     }
 

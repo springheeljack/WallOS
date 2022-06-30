@@ -1,9 +1,7 @@
 import { Keys } from "../Enums/Keys";
 
 export class KeyboardState {
-    constructor(
-        public keyStates: Record<string, boolean>
-    ) { }
+    public keyStates: Record<string, boolean> = {} as Record<string, boolean>;
 
     public isKeyDown(key: Keys): boolean {
         return this.keyStates[key] === true;
