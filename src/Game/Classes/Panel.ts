@@ -32,6 +32,8 @@ export abstract class Panel {
     private toClose = false;
     private toFocus = false;
     private hasFocus = false;
+    private isDragging = false;
+    private dragOffset = Vector2.zero();
 
     constructor(
         public program: Programs,
@@ -61,12 +63,34 @@ export abstract class Panel {
     update(input: Input) {
         this.toFocus = false;
 
-        if (input.hasUnusedClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
-            this.toClose = true;
-            input.setClickUsed(MouseButton.Left);
-        } else {
-            this.updatePanel(this.panelInnerRectangle);
-            this.toFocus = input.isButtonStartOfClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
+        this.updatePanel(this.panelInnerRectangle);
+        this.toFocus = input.isButtonStartOfClick(MouseButton.Left)
+            && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
+
+        if (input.hasUnusedClick(MouseButton.Left)) {
+            if (input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+                this.toClose = true;
+                input.setClickUsed(MouseButton.Left);
+            }
+            else if (input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1)) {
+                input.setClickUsed(MouseButton.Left);
+            }
+        }
+
+        if (input.hasUnusedDown(MouseButton.Left)
+            && input.getMousePosition().intersectsRectangle(this.panelTitleRectangle)
+            && !input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+            this.isDragging = true;
+            this.dragOffset = input.getMousePosition().subtract(this.panelOuterRectangle1.position);
+            this.toFocus = true;
+            input.setDownUsed(MouseButton.Left);
+        }
+        else if (this.isDragging) {
+            this.updatePosition(input.getMousePosition().subtract(this.dragOffset));
+
+            if (input.isButtonEndOfClick(MouseButton.Left)) {
+                this.isDragging = false;
+            }
         }
     }
 

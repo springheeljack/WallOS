@@ -25,6 +25,7 @@ export class Input {
 
         canvas.addEventListener('mousedown', event => {
             this.runningMouseState.buttonDown[event.button] = true;
+            this.runningMouseState.unusedDown[event.button] = true;
         });
 
         canvas.addEventListener('mouseup', event => {
@@ -63,6 +64,7 @@ export class Input {
         this.currentMouseState = this.runningMouseState.clone();
         this.runningMouseState.scroll = Scroll.None;
         this.runningMouseState.unusedClick = {} as Record<MouseButton, boolean>;
+        this.runningMouseState.unusedDown = {} as Record<MouseButton, boolean>;
 
         //Update keyboard states
         this.previousKeyboardState = this.currentKeyboardState;
@@ -100,6 +102,14 @@ export class Input {
 
     setClickUsed(mouseButton: MouseButton) {
         this.currentMouseState.setClickUsed(mouseButton);
+    }
+
+    hasUnusedDown(mouseButton: MouseButton) {
+        return this.currentMouseState.hasUnusedDown(mouseButton);
+    }
+
+    setDownUsed(mouseButton: MouseButton) {
+        this.currentMouseState.setDownUsed(mouseButton);
     }
 
     isKeyDown(key: Keys) {

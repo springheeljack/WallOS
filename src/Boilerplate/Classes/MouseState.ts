@@ -7,6 +7,7 @@ export class MouseState {
     public scroll: Scroll = Scroll.None;
     public buttonDown: Record<MouseButton, boolean> = {} as Record<MouseButton, boolean>;
     public unusedClick: Record<MouseButton, boolean> = {} as Record<MouseButton, boolean>;
+    public unusedDown: Record<MouseButton, boolean> = {} as Record<MouseButton, boolean>;
 
     public isButtonDown(mouseButton: MouseButton): boolean {
         return this.buttonDown[mouseButton] === true;
@@ -20,8 +21,16 @@ export class MouseState {
         return this.unusedClick[mouseButton] === true;
     }
 
+    public hasUnusedDown(mouseButton: MouseButton): boolean {
+        return this.unusedDown[mouseButton] === true;
+    }
+
     public setClickUsed(mouseButton: MouseButton) {
         this.unusedClick[mouseButton] = false;
+    }
+
+    public setDownUsed(mouseButton: MouseButton) {
+        this.unusedDown[mouseButton] = false;
     }
 
     public clone(): MouseState {
@@ -30,6 +39,7 @@ export class MouseState {
         clone.scroll = this.scroll;
         clone.buttonDown = Object.assign({}, this.buttonDown);
         clone.unusedClick = Object.assign({}, this.unusedClick);
+        clone.unusedDown = Object.assign({}, this.unusedDown);
 
         return clone;
     }

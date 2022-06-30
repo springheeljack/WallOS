@@ -429,6 +429,7 @@ define("Boilerplate/Classes/MouseState", ["require", "exports", "Boilerplate/Enu
             this.scroll = Scroll_1.Scroll.None;
             this.buttonDown = {};
             this.unusedClick = {};
+            this.unusedDown = {};
         }
         MouseState.prototype.isButtonDown = function (mouseButton) {
             return this.buttonDown[mouseButton] === true;
@@ -439,8 +440,14 @@ define("Boilerplate/Classes/MouseState", ["require", "exports", "Boilerplate/Enu
         MouseState.prototype.hasUnusedClick = function (mouseButton) {
             return this.unusedClick[mouseButton] === true;
         };
+        MouseState.prototype.hasUnusedDown = function (mouseButton) {
+            return this.unusedDown[mouseButton] === true;
+        };
         MouseState.prototype.setClickUsed = function (mouseButton) {
             this.unusedClick[mouseButton] = false;
+        };
+        MouseState.prototype.setDownUsed = function (mouseButton) {
+            this.unusedDown[mouseButton] = false;
         };
         MouseState.prototype.clone = function () {
             var clone = new MouseState();
@@ -448,6 +455,7 @@ define("Boilerplate/Classes/MouseState", ["require", "exports", "Boilerplate/Enu
             clone.scroll = this.scroll;
             clone.buttonDown = Object.assign({}, this.buttonDown);
             clone.unusedClick = Object.assign({}, this.unusedClick);
+            clone.unusedDown = Object.assign({}, this.unusedDown);
             return clone;
         };
         return MouseState;
@@ -502,6 +510,7 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
             this.runningKeyboardState = new KeyboardState_1.KeyboardState();
             canvas.addEventListener('mousedown', function (event) {
                 _this.runningMouseState.buttonDown[event.button] = true;
+                _this.runningMouseState.unusedDown[event.button] = true;
             });
             canvas.addEventListener('mouseup', function (event) {
                 _this.runningMouseState.buttonDown[event.button] = false;
@@ -533,6 +542,7 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
             this.currentMouseState = this.runningMouseState.clone();
             this.runningMouseState.scroll = Scroll_2.Scroll.None;
             this.runningMouseState.unusedClick = {};
+            this.runningMouseState.unusedDown = {};
             //Update keyboard states
             this.previousKeyboardState = this.currentKeyboardState;
             this.currentKeyboardState = this.runningKeyboardState;
@@ -561,6 +571,12 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
         };
         Input.prototype.setClickUsed = function (mouseButton) {
             this.currentMouseState.setClickUsed(mouseButton);
+        };
+        Input.prototype.hasUnusedDown = function (mouseButton) {
+            return this.currentMouseState.hasUnusedDown(mouseButton);
+        };
+        Input.prototype.setDownUsed = function (mouseButton) {
+            this.currentMouseState.setDownUsed(mouseButton);
         };
         Input.prototype.isKeyDown = function (key) {
             return this.currentKeyboardState.isKeyDown(key);
@@ -687,6 +703,8 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
             this.toClose = false;
             this.toFocus = false;
             this.hasFocus = false;
+            this.isDragging = false;
+            this.dragOffset = Vector2_6.Vector2.zero();
             this.getToFocus = function () { return _this.toFocus; };
             this.getHasFocus = function () { return _this.hasFocus; };
             this.setFocus = function (focus) { return _this.hasFocus = focus; };
@@ -706,13 +724,31 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
         }
         Panel.prototype.update = function (input) {
             this.toFocus = false;
-            if (input.hasUnusedClick(MouseButton_1.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
-                this.toClose = true;
-                input.setClickUsed(MouseButton_1.MouseButton.Left);
+            this.updatePanel(this.panelInnerRectangle);
+            this.toFocus = input.isButtonStartOfClick(MouseButton_1.MouseButton.Left)
+                && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
+            if (input.hasUnusedClick(MouseButton_1.MouseButton.Left)) {
+                if (input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+                    this.toClose = true;
+                    input.setClickUsed(MouseButton_1.MouseButton.Left);
+                }
+                else if (input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1)) {
+                    input.setClickUsed(MouseButton_1.MouseButton.Left);
+                }
             }
-            else {
-                this.updatePanel(this.panelInnerRectangle);
-                this.toFocus = input.isButtonStartOfClick(MouseButton_1.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
+            if (input.hasUnusedDown(MouseButton_1.MouseButton.Left)
+                && input.getMousePosition().intersectsRectangle(this.panelTitleRectangle)
+                && !input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
+                this.isDragging = true;
+                this.dragOffset = input.getMousePosition().subtract(this.panelOuterRectangle1.position);
+                this.toFocus = true;
+                input.setDownUsed(MouseButton_1.MouseButton.Left);
+            }
+            else if (this.isDragging) {
+                this.updatePosition(input.getMousePosition().subtract(this.dragOffset));
+                if (input.isButtonEndOfClick(MouseButton_1.MouseButton.Left)) {
+                    this.isDragging = false;
+                }
             }
         };
         Panel.prototype.draw = function (context) {
@@ -874,7 +910,7 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
     var CryptCoinMinerPanel = /** @class */ (function (_super) {
         __extends(CryptCoinMinerPanel, _super);
         function CryptCoinMinerPanel(images, resources, input) {
-            var _this = _super.call(this, Programs_1.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_2.ImageNames.CryptCoinMiner), new Vector2_7.Vector2(1100, 0), new Vector2_7.Vector2(480, 400), images) || this;
+            var _this = _super.call(this, Programs_1.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_2.ImageNames.CryptCoinMiner), new Vector2_7.Vector2(400, 0), new Vector2_7.Vector2(480, 400), images) || this;
             _this.resources = resources;
             _this.input = input;
             _this.isMining = false;
