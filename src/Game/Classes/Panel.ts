@@ -30,6 +30,8 @@ export abstract class Panel {
     private closeImage: HTMLImageElement;
 
     private toClose = false;
+    private toFocus = false;
+    private hasFocus = false;
 
     constructor(
         public program: Programs,
@@ -57,11 +59,14 @@ export abstract class Panel {
     }
 
     update(input: Input) {
+        this.toFocus = false;
+
         if (input.hasUnusedClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
             this.toClose = true;
             input.setClickUsed(MouseButton.Left);
         } else {
             this.updatePanel(this.panelInnerRectangle);
+            this.toFocus = input.isButtonStartOfClick(MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
         }
     }
 
@@ -72,7 +77,7 @@ export abstract class Panel {
         context.drawFillRectangle(this.panelOuterRectangle4, GameColour.greyscale100);
         context.drawFillRectangle(this.panelOuterRectangle5, GameColour.greyscale75);
 
-        context.drawFillRectangle(this.panelTitleRectangle, GameColour.selected);
+        context.drawFillRectangle(this.panelTitleRectangle, this.hasFocus ? GameColour.focusedWindowTitleRectangle : GameColour.unfocusedWindowTitleRectangle);
 
         context.drawFillRectangle(this.closeButtonRectangle1, GameColour.greyscale0);
         context.drawFillRectangle(this.closeButtonRectangle2, GameColour.greyscale100);
@@ -81,7 +86,8 @@ export abstract class Panel {
         context.drawFillRectangle(this.closeButtonRectangle5, GameColour.greyscale75);
 
         context.drawImageRectangle(this.icon, new Rectangle(this.panelTitleRectangle.position.add(new Vector2(4, 2)), new Vector2(32, 32)));
-        context.drawString(this.name, this.panelTitleRectangle.leftCenter().add(new Vector2(42, 0)), 32, Fonts.PixelOperator, GameColour.selectedText, Align.Left);
+        context.drawString(this.name, this.panelTitleRectangle.leftCenter().add(new Vector2(42, 0)), 32, Fonts.PixelOperator,
+            this.hasFocus ? GameColour.focusedWindowTitleText : GameColour.unfocusedWindowTitleText, Align.Left);
         context.drawImageRectangle(this.closeImage, new Rectangle(this.closeButtonRectangle5.position.add(new Vector2(4, 2)), new Vector2(16, 14)));
 
         context.save();
@@ -112,6 +118,11 @@ export abstract class Panel {
     getToClose() {
         return this.toClose;
     }
+
+    getToFocus = () => this.toFocus;
+    getHasFocus = () => this.hasFocus;
+
+    setFocus = (focus: boolean) => this.hasFocus = focus;
 
     protected abstract drawPanel(context: Context2D, panelRectangle: Rectangle): void;
     protected abstract updatePanel(panelRectangle: Rectangle): void;

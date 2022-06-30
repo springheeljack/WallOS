@@ -23,4 +23,14 @@ export class MouseState {
     public setClickUsed(mouseButton: MouseButton) {
         this.unusedClick[mouseButton] = false;
     }
+
+    public clone(): MouseState {
+        const clone = new MouseState();
+        clone.position = this.position.clone();
+        clone.scroll = this.scroll;
+        clone.buttonDown = Object.assign({}, this.buttonDown);
+        clone.unusedClick = Object.assign({}, this.unusedClick);
+
+        return clone;
+    }
 }

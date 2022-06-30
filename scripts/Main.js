@@ -13,6 +13,11 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
 define("Boilerplate/Enums/Align", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -437,6 +442,14 @@ define("Boilerplate/Classes/MouseState", ["require", "exports", "Boilerplate/Enu
         MouseState.prototype.setClickUsed = function (mouseButton) {
             this.unusedClick[mouseButton] = false;
         };
+        MouseState.prototype.clone = function () {
+            var clone = new MouseState();
+            clone.position = this.position.clone();
+            clone.scroll = this.scroll;
+            clone.buttonDown = Object.assign({}, this.buttonDown);
+            clone.unusedClick = Object.assign({}, this.unusedClick);
+            return clone;
+        };
         return MouseState;
     }());
     exports.MouseState = MouseState;
@@ -517,12 +530,9 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
         Input.prototype.update = function () {
             //Update mouse states
             this.previousMouseState = this.currentMouseState;
-            this.currentMouseState = new MouseState_1.MouseState();
-            this.currentMouseState.position = this.runningMouseState.position.clone();
-            this.currentMouseState.scroll = this.runningMouseState.scroll;
-            this.currentMouseState.buttonDown = this.runningMouseState.buttonDown;
-            this.currentMouseState.unusedClick = this.runningMouseState.unusedClick;
+            this.currentMouseState = this.runningMouseState.clone();
             this.runningMouseState.scroll = Scroll_2.Scroll.None;
+            this.runningMouseState.unusedClick = {};
             //Update keyboard states
             this.previousKeyboardState = this.currentKeyboardState;
             this.currentKeyboardState = this.runningKeyboardState;
@@ -539,6 +549,12 @@ define("Boilerplate/Classes/Input", ["require", "exports", "Boilerplate/Classes/
         };
         Input.prototype.isButtonDown = function (mouseButton) {
             return this.currentMouseState.isButtonDown(mouseButton);
+        };
+        Input.prototype.isButtonStartOfClick = function (mouseButton) {
+            return this.currentMouseState.isButtonDown(mouseButton) && this.previousMouseState.isButtonUp(mouseButton);
+        };
+        Input.prototype.isButtonEndOfClick = function (mouseButton) {
+            return this.currentMouseState.isButtonUp(mouseButton) && this.previousMouseState.isButtonDown(mouseButton);
         };
         Input.prototype.hasUnusedClick = function (mouseButton) {
             return this.currentMouseState.hasUnusedClick(mouseButton);
@@ -649,6 +665,10 @@ define("Game/Modules/GameColour", ["require", "exports", "Boilerplate/Classes/Co
         GameColour.greyscale100 = new Colour_1.Colour(255, 255, 255);
         GameColour.selected = new Colour_1.Colour(0, 0, 128);
         GameColour.selectedText = new Colour_1.Colour(255, 255, 255);
+        GameColour.focusedWindowTitleRectangle = new Colour_1.Colour(0, 0, 128);
+        GameColour.focusedWindowTitleText = new Colour_1.Colour(255, 255, 255);
+        GameColour.unfocusedWindowTitleRectangle = new Colour_1.Colour(128, 128, 128);
+        GameColour.unfocusedWindowTitleText = new Colour_1.Colour(192, 192, 192);
         GameColour.text = new Colour_1.Colour(0, 0, 0);
         GameColour.textDisabled = new Colour_1.Colour(128, 128, 128);
         GameColour.textConsole = new Colour_1.Colour(0, 255, 0);
@@ -660,10 +680,16 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
     exports.Panel = void 0;
     var Panel = /** @class */ (function () {
         function Panel(program, name, icon, panelPosition, panelSize, images) {
+            var _this = this;
             this.program = program;
             this.name = name;
             this.icon = icon;
             this.toClose = false;
+            this.toFocus = false;
+            this.hasFocus = false;
+            this.getToFocus = function () { return _this.toFocus; };
+            this.getHasFocus = function () { return _this.hasFocus; };
+            this.setFocus = function (focus) { return _this.hasFocus = focus; };
             this.panelOuterRectangle1 = new Rectangle_1.Rectangle(panelPosition, panelSize.add(new Vector2_6.Vector2(16, 56)));
             this.panelOuterRectangle2 = new Rectangle_1.Rectangle(panelPosition, panelSize.add(new Vector2_6.Vector2(14, 54)));
             this.panelOuterRectangle3 = new Rectangle_1.Rectangle(panelPosition.addNumber(2), panelSize.add(new Vector2_6.Vector2(12, 52)));
@@ -679,12 +705,14 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
             this.closeImage = images.getImage(ImageNames_1.ImageNames.Close);
         }
         Panel.prototype.update = function (input) {
+            this.toFocus = false;
             if (input.hasUnusedClick(MouseButton_1.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.closeButtonRectangle1)) {
                 this.toClose = true;
                 input.setClickUsed(MouseButton_1.MouseButton.Left);
             }
             else {
                 this.updatePanel(this.panelInnerRectangle);
+                this.toFocus = input.isButtonStartOfClick(MouseButton_1.MouseButton.Left) && input.getMousePosition().intersectsRectangle(this.panelOuterRectangle1);
             }
         };
         Panel.prototype.draw = function (context) {
@@ -693,14 +721,14 @@ define("Game/Classes/Panel", ["require", "exports", "Boilerplate/Classes/Rectang
             context.drawFillRectangle(this.panelOuterRectangle3, GameColour_1.GameColour.greyscale50);
             context.drawFillRectangle(this.panelOuterRectangle4, GameColour_1.GameColour.greyscale100);
             context.drawFillRectangle(this.panelOuterRectangle5, GameColour_1.GameColour.greyscale75);
-            context.drawFillRectangle(this.panelTitleRectangle, GameColour_1.GameColour.selected);
+            context.drawFillRectangle(this.panelTitleRectangle, this.hasFocus ? GameColour_1.GameColour.focusedWindowTitleRectangle : GameColour_1.GameColour.unfocusedWindowTitleRectangle);
             context.drawFillRectangle(this.closeButtonRectangle1, GameColour_1.GameColour.greyscale0);
             context.drawFillRectangle(this.closeButtonRectangle2, GameColour_1.GameColour.greyscale100);
             context.drawFillRectangle(this.closeButtonRectangle3, GameColour_1.GameColour.greyscale50);
             context.drawFillRectangle(this.closeButtonRectangle4, GameColour_1.GameColour.greyscale87);
             context.drawFillRectangle(this.closeButtonRectangle5, GameColour_1.GameColour.greyscale75);
             context.drawImageRectangle(this.icon, new Rectangle_1.Rectangle(this.panelTitleRectangle.position.add(new Vector2_6.Vector2(4, 2)), new Vector2_6.Vector2(32, 32)));
-            context.drawString(this.name, this.panelTitleRectangle.leftCenter().add(new Vector2_6.Vector2(42, 0)), 32, Fonts_1.Fonts.PixelOperator, GameColour_1.GameColour.selectedText, Align_2.Align.Left);
+            context.drawString(this.name, this.panelTitleRectangle.leftCenter().add(new Vector2_6.Vector2(42, 0)), 32, Fonts_1.Fonts.PixelOperator, this.hasFocus ? GameColour_1.GameColour.focusedWindowTitleText : GameColour_1.GameColour.unfocusedWindowTitleText, Align_2.Align.Left);
             context.drawImageRectangle(this.closeImage, new Rectangle_1.Rectangle(this.closeButtonRectangle5.position.add(new Vector2_6.Vector2(4, 2)), new Vector2_6.Vector2(16, 14)));
             context.save();
             context.beginPath();
@@ -1231,7 +1259,9 @@ define("Game/Classes/ProgramManager", ["require", "exports", "Game/Enums/Program
         };
         ProgramManager.prototype.runProgram = function (program) {
             if (this.panels.every(function (x) { return x.program !== program; })) {
-                this.panels.push(this.panelCreators.get(program)());
+                var newPanel = this.panelCreators.get(program)();
+                newPanel.setFocus(true);
+                this.panels = __spreadArray([newPanel], this.panels);
             }
         };
         ProgramManager.prototype.update = function (input) {
@@ -1240,11 +1270,28 @@ define("Game/Classes/ProgramManager", ["require", "exports", "Game/Enums/Program
             });
             var toClose = this.panels.filter(function (x) { return x.getToClose(); });
             this.panels = this.panels.filter(function (x) { return toClose.every(function (y) { return y !== x; }); });
+            var toFocus = this.panels.filter(function (x) { return x.getToFocus(); })[0];
+            var currentlyFocused = this.panels.filter(function (x) { return x.getHasFocus(); })[0];
+            var toUnfocus = this.panels.filter(function (x) { return x !== toFocus && x !== currentlyFocused; });
+            toUnfocus.forEach(function (x) { return x.setFocus(false); });
+            if (currentlyFocused != null && toFocus == null) {
+                currentlyFocused.setFocus(true);
+            }
+            else if (currentlyFocused != null && toFocus != null && currentlyFocused != toFocus) {
+                toFocus.setFocus(true);
+                currentlyFocused.setFocus(false);
+                this.panels = __spreadArray([toFocus, currentlyFocused], toUnfocus);
+            }
+            else if (currentlyFocused == null && toFocus != null) {
+                toFocus.setFocus(true);
+                this.panels = __spreadArray([toFocus], toUnfocus);
+            }
         };
         ProgramManager.prototype.draw = function (context) {
-            this.panels.forEach(function (panel) {
+            this.panels.reverse().forEach(function (panel) {
                 panel.draw(context);
             });
+            this.panels.reverse();
         };
         return ProgramManager;
     }());

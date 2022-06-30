@@ -22,7 +22,9 @@ export class ProgramManager {
 
     runProgram(program: Programs) {
         if (this.panels.every(x => x.program !== program)) {
-            this.panels.push(this.panelCreators.get(program)());
+            const newPanel = this.panelCreators.get(program)();
+            newPanel.setFocus(true);
+            this.panels = [newPanel, ...this.panels];
         }
     }
 
@@ -33,11 +35,30 @@ export class ProgramManager {
 
         const toClose = this.panels.filter(x => x.getToClose());
         this.panels = this.panels.filter(x => toClose.every(y => y !== x));
+
+        const toFocus = this.panels.filter(x => x.getToFocus())[0];
+        const currentlyFocused = this.panels.filter(x => x.getHasFocus())[0];
+        const toUnfocus = this.panels.filter(x => x !== toFocus && x !== currentlyFocused);
+        toUnfocus.forEach(x => x.setFocus(false));
+
+        if (currentlyFocused != null && toFocus == null) {
+            currentlyFocused.setFocus(true);
+        }
+        else if (currentlyFocused != null && toFocus != null && currentlyFocused != toFocus) {
+            toFocus.setFocus(true);
+            currentlyFocused.setFocus(false);
+            this.panels = [toFocus, currentlyFocused, ...toUnfocus];
+        } else if (currentlyFocused == null && toFocus != null) {
+            toFocus.setFocus(true);
+            this.panels = [toFocus, ...toUnfocus];
+        }
     }
 
     draw(context: Context2D) {
-        this.panels.forEach(panel => {
+        this.panels.reverse().forEach(panel => {
             panel.draw(context);
         });
+
+        this.panels.reverse();
     }
 }

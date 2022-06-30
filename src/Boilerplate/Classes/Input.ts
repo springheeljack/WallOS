@@ -60,14 +60,9 @@ export class Input {
     update() {
         //Update mouse states
         this.previousMouseState = this.currentMouseState;
-
-        this.currentMouseState = new MouseState();
-        this.currentMouseState.position = this.runningMouseState.position.clone();
-        this.currentMouseState.scroll = this.runningMouseState.scroll;
-        this.currentMouseState.buttonDown = this.runningMouseState.buttonDown;
-        this.currentMouseState.unusedClick = this.runningMouseState.unusedClick;
-
+        this.currentMouseState = this.runningMouseState.clone();
         this.runningMouseState.scroll = Scroll.None;
+        this.runningMouseState.unusedClick = {} as Record<MouseButton, boolean>;
 
         //Update keyboard states
         this.previousKeyboardState = this.currentKeyboardState;
@@ -89,6 +84,14 @@ export class Input {
 
     isButtonDown(mouseButton: MouseButton) {
         return this.currentMouseState.isButtonDown(mouseButton);
+    }
+
+    isButtonStartOfClick(mouseButton: MouseButton) {
+        return this.currentMouseState.isButtonDown(mouseButton) && this.previousMouseState.isButtonUp(mouseButton);
+    }
+
+    isButtonEndOfClick(mouseButton: MouseButton) {
+        return this.currentMouseState.isButtonUp(mouseButton) && this.previousMouseState.isButtonDown(mouseButton);
     }
 
     hasUnusedClick(mouseButton: MouseButton) {
