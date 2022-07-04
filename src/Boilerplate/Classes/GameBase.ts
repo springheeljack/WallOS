@@ -5,10 +5,10 @@ import { Input } from "./Input";
 export abstract class GameBase {
     static updatesPerSecond = 60;
     static drawsPerSecond = 60;
-    static updateInterval = 1000 / 60;
-    static drawInterval = 1000 / 60;
-    static updateTime = 1 / 60;
-    static drawTime = 1 / 60;
+    static updateInterval = 1000 / GameBase.updatesPerSecond;
+    static drawInterval = 1000 / GameBase.drawsPerSecond;
+    static updateTime = 1 / GameBase.updatesPerSecond;
+    static drawTime = 1 / GameBase.drawsPerSecond;
 
     canvas: HTMLCanvasElement;
     context: Context2D;

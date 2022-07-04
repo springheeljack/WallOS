@@ -631,10 +631,10 @@ define("Boilerplate/Classes/GameBase", ["require", "exports", "Boilerplate/Class
         };
         GameBase.updatesPerSecond = 60;
         GameBase.drawsPerSecond = 60;
-        GameBase.updateInterval = 1000 / 60;
-        GameBase.drawInterval = 1000 / 60;
-        GameBase.updateTime = 1 / 60;
-        GameBase.drawTime = 1 / 60;
+        GameBase.updateInterval = 1000 / GameBase.updatesPerSecond;
+        GameBase.drawInterval = 1000 / GameBase.drawsPerSecond;
+        GameBase.updateTime = 1 / GameBase.updatesPerSecond;
+        GameBase.drawTime = 1 / GameBase.drawsPerSecond;
         return GameBase;
     }());
     exports.GameBase = GameBase;
@@ -1013,7 +1013,7 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
             return Math.pow(3.6, this.resources.cryptCoinMinerSeedLevel + 3);
         };
         CryptCoinMinerPanel.prototype.moneyPerTick = function () {
-            return 0.0005 *
+            return 0.1 * GameBase_1.GameBase.updateTime *
                 this.resources.cryptCoinMinerAlgorithmLevel *
                 this.resources.cryptCoinMinerHashLevel *
                 this.resources.cryptCoinMinerCpuLevel *
@@ -1130,7 +1130,7 @@ define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Class
             return Math.pow(6.6, this.resources.hackinatorRansomwareLevel + 3) * 100000;
         };
         HackinatorPanel.prototype.moneyPerTick = function () {
-            return 100 *
+            return 10000 * GameBase_2.GameBase.updateTime *
                 this.resources.hackinatorPasswordCrackerLevel *
                 this.resources.hackinatorSqlInjectionLevel *
                 this.resources.hackinatorKeyDecryptor *

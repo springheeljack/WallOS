@@ -157,7 +157,7 @@ export class CryptCoinMinerPanel extends Panel {
     }
 
     moneyPerTick() {
-        return 0.0005 *
+        return 0.1 * GameBase.updateTime *
             this.resources.cryptCoinMinerAlgorithmLevel *
             this.resources.cryptCoinMinerHashLevel *
             this.resources.cryptCoinMinerCpuLevel *

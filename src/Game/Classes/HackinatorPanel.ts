@@ -159,7 +159,7 @@ export class HackinatorPanel extends Panel {
     }
 
     moneyPerTick() {
-        return 100 *
+        return 10000 * GameBase.updateTime *
             this.resources.hackinatorPasswordCrackerLevel *
             this.resources.hackinatorSqlInjectionLevel *
             this.resources.hackinatorKeyDecryptor *
