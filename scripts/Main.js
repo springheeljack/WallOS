@@ -653,6 +653,7 @@ define("Game/Enums/ImageNames", ["require", "exports"], function (require, expor
         ImageNames["CryptCoinMiner"] = "CryptCoinMiner";
         ImageNames["ProgramShop"] = "ProgramShop";
         ImageNames["Hackinator"] = "Hackinator";
+        ImageNames["AutoStonks"] = "AutoStonks";
     })(ImageNames = exports.ImageNames || (exports.ImageNames = {}));
 });
 define("Game/Enums/Programs", ["require", "exports"], function (require, exports) {
@@ -665,6 +666,7 @@ define("Game/Enums/Programs", ["require", "exports"], function (require, exports
         Programs[Programs["CryptCoinMiner"] = 2] = "CryptCoinMiner";
         Programs[Programs["ProgramShop"] = 3] = "ProgramShop";
         Programs[Programs["Hackinator"] = 4] = "Hackinator";
+        Programs[Programs["AutoStonks"] = 5] = "AutoStonks";
     })(Programs = exports.Programs || (exports.Programs = {}));
 });
 define("Game/Modules/GameColour", ["require", "exports", "Boilerplate/Classes/Colour"], function (require, exports, Colour_1) {
@@ -811,8 +813,14 @@ define("Game/Classes/Resources", ["require", "exports"], function (require, expo
             this.hackinatorKeyDecryptor = 1;
             this.hackinatorBotnetLevel = 1;
             this.hackinatorRansomwareLevel = 1;
+            this.autoStonksKrongularLevel = 1;
+            this.autoStonksMarketPredictionLevel = 1;
+            this.autoStonksHighFrequencyTradingLevel = 1;
+            this.autoStonksInsiderTradingLevel = 1;
+            this.autoStonksPumpAndDumpLevel = 1;
             this.programCryptCoinMinerUnlocked = false;
             this.programHackinatorUnlocked = false;
+            this.programAutoStonksUnlocked = false;
         }
         return Resources;
     }());
@@ -903,14 +911,179 @@ define("Game/Functions", ["require", "exports"], function (require, exports) {
     }
     exports.numberWithPostfix = numberWithPostfix;
 });
-define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/Panel", "Game/Classes/TextButton", "Boilerplate/Modules/MathHelper", "Boilerplate/Classes/GameBase", "Game/Functions"], function (require, exports, Rectangle_3, Vector2_7, Align_4, Fonts_3, ImageNames_2, Programs_1, GameColour_3, Panel_1, TextButton_1, MathHelper_4, GameBase_1, Functions_1) {
+define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modules/MathHelper", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/Panel", "Game/Classes/TextButton", "Boilerplate/Classes/GameBase", "Game/Functions", "Boilerplate/Classes/Colour"], function (require, exports, MathHelper_4, Rectangle_3, Vector2_7, Align_4, Fonts_3, ImageNames_2, Programs_1, GameColour_3, Panel_1, TextButton_1, GameBase_1, Functions_1, Colour_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.AutoStonksPanel = void 0;
+    var AutoStonksPanel = /** @class */ (function (_super) {
+        __extends(AutoStonksPanel, _super);
+        function AutoStonksPanel(images, resources, input) {
+            var _this = _super.call(this, Programs_1.Programs.AutoStonks, "AutoStonks", images.getImage(ImageNames_2.ImageNames.AutoStonks), new Vector2_7.Vector2(400, 200), new Vector2_7.Vector2(480, 526), images) || this;
+            _this.resources = resources;
+            _this.input = input;
+            _this.isTrading = false;
+            _this.tradingTicks = 300;
+            _this.currentTradingTicks = 0;
+            _this.dataPoints = [0];
+            _this.maxDataPoints = 20;
+            _this.displayWidth = 438;
+            _this.displayHeight = 144;
+            _this.dataPointDistance = Math.floor((_this.displayWidth / _this.maxDataPoints) / 2) * 2;
+            _this.dataPointSize = new Vector2_7.Vector2(6, 6);
+            _this.dataPointColour = new Colour_2.Colour(0, 255, 255);
+            _this.dataLineDownColour = new Colour_2.Colour(255, 0, 0);
+            _this.dataLineUpColour = new Colour_2.Colour(0, 255, 0);
+            _this.dataLineFlatColour = new Colour_2.Colour(255, 127, 0);
+            _this.rectangles = [
+                { rectangle: new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 78), new Vector2_7.Vector2(448, 160)), colour: GameColour_3.GameColour.greyscale100 },
+                { rectangle: new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 78), new Vector2_7.Vector2(446, 158)), colour: GameColour_3.GameColour.greyscale50 },
+                { rectangle: new Rectangle_3.Rectangle(new Vector2_7.Vector2(18, 80), new Vector2_7.Vector2(444, 156)), colour: GameColour_3.GameColour.greyscale100 },
+                { rectangle: new Rectangle_3.Rectangle(new Vector2_7.Vector2(18, 80), new Vector2_7.Vector2(442, 154)), colour: GameColour_3.GameColour.greyscale0 }
+            ];
+            _this.tradingButton = new TextButton_1.TextButton("Start trading", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 16), new Vector2_7.Vector2(192, 40)), function () {
+                _this.isTrading = !_this.isTrading;
+                _this.tradingButton.text = _this.isTrading ? "Stop trading" : "Start trading";
+            });
+            _this.krongularButton = new TextButton_1.TextButton("Krongular", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 254), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.krongularCost();
+                _this.resources.autoStonksKrongularLevel++;
+            }, function () { return _this.resources.money >= _this.krongularCost(); });
+            _this.marketPredictionButton = new TextButton_1.TextButton("Market prediction", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 306), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.marketPredictionCost();
+                _this.resources.autoStonksMarketPredictionLevel++;
+            }, function () { return _this.resources.money >= _this.marketPredictionCost(); });
+            _this.highFrequencyTradingButton = new TextButton_1.TextButton("HiFreq trading", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 358), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.highFrequencyTradingCost();
+                _this.resources.autoStonksHighFrequencyTradingLevel++;
+            }, function () { return _this.resources.money >= _this.highFrequencyTradingCost(); });
+            _this.insiderTradingButton = new TextButton_1.TextButton("Insider trading", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 410), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.insiderTradingCost();
+                _this.resources.autoStonksInsiderTradingLevel++;
+            }, function () { return _this.resources.money >= _this.insiderTradingCost(); });
+            _this.pumpAndDumpButton = new TextButton_1.TextButton("Pump and dump", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 462), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.pumpAndDumpCost();
+                _this.resources.autoStonksPumpAndDumpLevel++;
+            }, function () { return _this.resources.money >= _this.pumpAndDumpCost(); });
+            _this.buttons = [
+                _this.tradingButton,
+                _this.krongularButton,
+                _this.marketPredictionButton,
+                _this.highFrequencyTradingButton,
+                _this.insiderTradingButton,
+                _this.pumpAndDumpButton,
+            ];
+            return _this;
+        }
+        AutoStonksPanel.prototype.updatePanel = function (panelRectangle) {
+            var _this = this;
+            this.buttons.forEach(function (x) { return x.update(_this.input, panelRectangle.topLeft()); });
+            if (this.isTrading) {
+                this.resources.money += this.moneyPerTick();
+                while (this.currentTradingTicks >= this.tradingTicks) {
+                    this.currentTradingTicks -= this.tradingTicks;
+                    this.updateTradingDisplay();
+                }
+                this.currentTradingTicks +=
+                    this.resources.autoStonksKrongularLevel +
+                        this.resources.autoStonksMarketPredictionLevel +
+                        this.resources.autoStonksHighFrequencyTradingLevel +
+                        this.resources.autoStonksInsiderTradingLevel +
+                        this.resources.autoStonksPumpAndDumpLevel;
+            }
+        };
+        AutoStonksPanel.prototype.drawPanel = function (context, panelRectangle) {
+            this.buttons.forEach(function (x) { return x.draw(context, panelRectangle.topLeft()); });
+            context.drawString("$" + Functions_1.numberWithPostfix(this.moneyPerTick() * GameBase_1.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_7.Vector2(224, 24)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.krongularCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 262)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.marketPredictionCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 314)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.highFrequencyTradingCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 366)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.insiderTradingCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 418)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.pumpAndDumpCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 470)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            this.rectangles.forEach(function (x) { return context.drawFillRectangle(new Rectangle_3.Rectangle(x.rectangle.position.add(panelRectangle.topLeft()), x.rectangle.size), x.colour); });
+            this.drawTradingDisplay(context, this.rectangles[this.rectangles.length - 1].rectangle.position.add(panelRectangle.topLeft().addNumber(2)));
+        };
+        AutoStonksPanel.prototype.krongularCost = function () {
+            return Math.pow(2.2, this.resources.autoStonksKrongularLevel - 1) * 100000;
+        };
+        AutoStonksPanel.prototype.marketPredictionCost = function () {
+            return Math.pow(3.3, this.resources.autoStonksMarketPredictionLevel) * 100000;
+        };
+        AutoStonksPanel.prototype.highFrequencyTradingCost = function () {
+            return Math.pow(4.4, this.resources.autoStonksHighFrequencyTradingLevel + 1) * 100000;
+        };
+        AutoStonksPanel.prototype.insiderTradingCost = function () {
+            return Math.pow(5.5, this.resources.autoStonksInsiderTradingLevel + 2) * 100000;
+        };
+        AutoStonksPanel.prototype.pumpAndDumpCost = function () {
+            return Math.pow(6.6, this.resources.autoStonksPumpAndDumpLevel + 3) * 100000;
+        };
+        AutoStonksPanel.prototype.moneyPerTick = function () {
+            return 1000000000 * GameBase_1.GameBase.updateTime *
+                this.resources.autoStonksKrongularLevel *
+                this.resources.autoStonksMarketPredictionLevel *
+                this.resources.autoStonksHighFrequencyTradingLevel *
+                this.resources.autoStonksInsiderTradingLevel *
+                this.resources.autoStonksPumpAndDumpLevel;
+        };
+        AutoStonksPanel.prototype.updateTradingDisplay = function () {
+            this.dataPoints.push(this.dataPoints[this.dataPoints.length - 1] + MathHelper_4.MathHelper.randomInt(-10, 10));
+            if (this.dataPoints.length > this.maxDataPoints)
+                this.dataPoints.shift();
+        };
+        //This all needs sorting as it can display rectangles between the 2x pixel limit
+        AutoStonksPanel.prototype.drawTradingDisplay = function (context, offset) {
+            var _this = this;
+            var min = Math.min.apply(Math, this.dataPoints);
+            var max = Math.max.apply(Math, this.dataPoints);
+            if (min == max) {
+                min -= 10;
+                max += 10;
+            }
+            var difference = max - min;
+            this.dataPoints.slice(0, this.dataPoints.length - 1).forEach(function (dataPoint, index) {
+                _this.drawLine(index * _this.dataPointDistance, (((dataPoint - max) * -1) / difference) * _this.displayHeight, (index + 1) * _this.dataPointDistance, (((_this.dataPoints[index + 1] - max) * -1) / difference) * _this.displayHeight, context, offset);
+            });
+            this.dataPoints.forEach(function (dataPoint, index) {
+                var y = (((dataPoint - max) * -1) / difference) * _this.displayHeight;
+                var x = index * _this.dataPointDistance;
+                context.drawFillRectangle(new Rectangle_3.Rectangle(new Vector2_7.Vector2(x, y).add(offset), _this.dataPointSize), _this.dataPointColour);
+            });
+        };
+        AutoStonksPanel.prototype.drawLine = function (x1, y1, x2, y2, context, offset) {
+            var xDiff = Math.ceil((x2 - x1) / 2);
+            var yDiff = Math.ceil((y2 - y1) / 2);
+            if (y1 < y2) {
+                for (var i = 0; i < xDiff; i++) {
+                    var yStart = Math.floor((i / xDiff) * yDiff) * 2;
+                    var yEnd = Math.ceil(((i + 1) / xDiff) * yDiff) * 2;
+                    var rect = new Rectangle_3.Rectangle(new Vector2_7.Vector2(x1 + (i * 2), y1 + (yStart)).add(offset).addNumber(2), new Vector2_7.Vector2(2, Math.ceil(yEnd - yStart)));
+                    context.drawFillRectangle(rect, this.dataLineDownColour);
+                }
+            }
+            else if (y1 > y2) {
+                for (var i = 0; i < xDiff; i++) {
+                    var yStart = Math.ceil((i / xDiff) * yDiff) * 2;
+                    var yEnd = Math.floor(((i + 1) / xDiff) * yDiff) * 2;
+                    var rect = new Rectangle_3.Rectangle(new Vector2_7.Vector2(x1 + (i * 2), y1 + (yStart)).add(offset).addNumber(2), new Vector2_7.Vector2(2, Math.floor(yEnd - yStart)));
+                    context.drawFillRectangle(rect, this.dataLineUpColour);
+                }
+            }
+            else {
+                context.drawFillRectangle(new Rectangle_3.Rectangle(new Vector2_7.Vector2(x1, y1).add(offset).addNumber(2), new Vector2_7.Vector2(x2 - x1, 2)), this.dataLineFlatColour);
+            }
+        };
+        return AutoStonksPanel;
+    }(Panel_1.Panel));
+    exports.AutoStonksPanel = AutoStonksPanel;
+});
+define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/Panel", "Game/Classes/TextButton", "Boilerplate/Modules/MathHelper", "Boilerplate/Classes/GameBase", "Game/Functions"], function (require, exports, Rectangle_4, Vector2_8, Align_5, Fonts_4, ImageNames_3, Programs_2, GameColour_4, Panel_2, TextButton_2, MathHelper_5, GameBase_2, Functions_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CryptCoinMinerPanel = void 0;
     var CryptCoinMinerPanel = /** @class */ (function (_super) {
         __extends(CryptCoinMinerPanel, _super);
         function CryptCoinMinerPanel(images, resources, input) {
-            var _this = _super.call(this, Programs_1.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_2.ImageNames.CryptCoinMiner), new Vector2_7.Vector2(400, 0), new Vector2_7.Vector2(480, 400), images) || this;
+            var _this = _super.call(this, Programs_2.Programs.CryptCoinMiner, "CryptCoin Miner", images.getImage(ImageNames_3.ImageNames.CryptCoinMiner), new Vector2_8.Vector2(400, 0), new Vector2_8.Vector2(480, 400), images) || this;
             _this.resources = resources;
             _this.input = input;
             _this.isMining = false;
@@ -921,27 +1094,27 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
             _this.miningStringChars = "0123456789ABCDEF";
             _this.miningTicks = 50;
             _this.currentMiningTicks = 0;
-            _this.miningButton = new TextButton_1.TextButton("Start mining", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 16), new Vector2_7.Vector2(192, 40)), function () {
+            _this.miningButton = new TextButton_2.TextButton("Start mining", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 16), new Vector2_8.Vector2(192, 40)), function () {
                 _this.isMining = !_this.isMining;
                 _this.miningButton.text = _this.isMining ? "Stop mining" : "Start mining";
             });
-            _this.algorithmButton = new TextButton_1.TextButton("Improve algorithm", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 128), new Vector2_7.Vector2(240, 40)), function () {
+            _this.algorithmButton = new TextButton_2.TextButton("Improve algorithm", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 128), new Vector2_8.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.algorithmCost();
                 _this.resources.cryptCoinMinerAlgorithmLevel++;
             }, function () { return _this.resources.money >= _this.algorithmCost(); });
-            _this.hashButton = new TextButton_1.TextButton("Hash storage", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 180), new Vector2_7.Vector2(240, 40)), function () {
+            _this.hashButton = new TextButton_2.TextButton("Hash storage", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 180), new Vector2_8.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.hashCost();
                 _this.resources.cryptCoinMinerHashLevel++;
             }, function () { return _this.resources.money >= _this.hashCost(); });
-            _this.cpuButton = new TextButton_1.TextButton("More CPU cores", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 232), new Vector2_7.Vector2(240, 40)), function () {
+            _this.cpuButton = new TextButton_2.TextButton("More CPU cores", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 232), new Vector2_8.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.cpuCost();
                 _this.resources.cryptCoinMinerCpuLevel++;
             }, function () { return _this.resources.money >= _this.cpuCost(); });
-            _this.parallelButton = new TextButton_1.TextButton("Parallelization", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 284), new Vector2_7.Vector2(240, 40)), function () {
+            _this.parallelButton = new TextButton_2.TextButton("Parallelization", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 284), new Vector2_8.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.parallelCost();
                 _this.resources.cryptCoinMinerParallelLevel++;
             }, function () { return _this.resources.money >= _this.parallelCost(); });
-            _this.seedButton = new TextButton_1.TextButton("Seed prediction", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 336), new Vector2_7.Vector2(240, 40)), function () {
+            _this.seedButton = new TextButton_2.TextButton("Seed prediction", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 336), new Vector2_8.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.seedCost();
                 _this.resources.cryptCoinMinerSeedLevel++;
             }, function () { return _this.resources.money >= _this.seedCost(); });
@@ -970,7 +1143,7 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
                             if (this.miningString[i] !== "0") {
                                 this.miningString = this.miningString.substring(0, i);
                                 for (; i < this.miningStringLength; i++) {
-                                    this.miningString = this.miningString.concat(this.miningStringChars[MathHelper_4.MathHelper.randomInt(0, this.miningStringChars.length - 1)]);
+                                    this.miningString = this.miningString.concat(this.miningStringChars[MathHelper_5.MathHelper.randomInt(0, this.miningStringChars.length - 1)]);
                                 }
                                 break;
                             }
@@ -989,13 +1162,13 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
         };
         CryptCoinMinerPanel.prototype.drawPanel = function (context, panelRectangle) {
             this.buttons.forEach(function (x) { return x.draw(context, panelRectangle.topLeft()); });
-            context.drawString(this.miningString, panelRectangle.topLeft().add(new Vector2_7.Vector2(16, 78)), 32, Fonts_3.Fonts.PixelOperator, this.isMining ? GameColour_3.GameColour.text : GameColour_3.GameColour.textDisabled, Align_4.Align.TopLeft);
-            context.drawString("$" + Functions_1.numberWithPostfix(this.moneyPerTick() * GameBase_1.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_7.Vector2(224, 24)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.algorithmCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 136)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.hashCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 188)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.cpuCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 240)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.parallelCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 292)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.seedCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 344)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString(this.miningString, panelRectangle.topLeft().add(new Vector2_8.Vector2(16, 78)), 32, Fonts_4.Fonts.PixelOperator, this.isMining ? GameColour_4.GameColour.text : GameColour_4.GameColour.textDisabled, Align_5.Align.TopLeft);
+            context.drawString("$" + Functions_2.numberWithPostfix(this.moneyPerTick() * GameBase_2.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_8.Vector2(224, 24)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.algorithmCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 136)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.hashCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 188)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.cpuCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 240)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.parallelCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 292)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.seedCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 344)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
         };
         CryptCoinMinerPanel.prototype.algorithmCost = function () {
             return Math.pow(2, this.resources.cryptCoinMinerAlgorithmLevel - 1);
@@ -1013,7 +1186,7 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
             return Math.pow(3.6, this.resources.cryptCoinMinerSeedLevel + 3);
         };
         CryptCoinMinerPanel.prototype.moneyPerTick = function () {
-            return 0.1 * GameBase_1.GameBase.updateTime *
+            return 0.1 * GameBase_2.GameBase.updateTime *
                 this.resources.cryptCoinMinerAlgorithmLevel *
                 this.resources.cryptCoinMinerHashLevel *
                 this.resources.cryptCoinMinerCpuLevel *
@@ -1021,17 +1194,17 @@ define("Game/Classes/CryptCoinMinerPanel", ["require", "exports", "Boilerplate/C
                 this.resources.cryptCoinMinerSeedLevel;
         };
         return CryptCoinMinerPanel;
-    }(Panel_1.Panel));
+    }(Panel_2.Panel));
     exports.CryptCoinMinerPanel = CryptCoinMinerPanel;
 });
-define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/Panel", "Game/Classes/TextButton", "Boilerplate/Classes/GameBase", "Game/Functions"], function (require, exports, Rectangle_4, Vector2_8, Align_5, Fonts_4, ImageNames_3, Programs_2, GameColour_4, Panel_2, TextButton_2, GameBase_2, Functions_2) {
+define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/Panel", "Game/Classes/TextButton", "Boilerplate/Classes/GameBase", "Game/Functions"], function (require, exports, Rectangle_5, Vector2_9, Align_6, Fonts_5, ImageNames_4, Programs_3, GameColour_5, Panel_3, TextButton_3, GameBase_3, Functions_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HackinatorPanel = void 0;
     var HackinatorPanel = /** @class */ (function (_super) {
         __extends(HackinatorPanel, _super);
         function HackinatorPanel(images, resources, input) {
-            var _this = _super.call(this, Programs_2.Programs.Hackinator, "Hackinator", images.getImage(ImageNames_3.ImageNames.Hackinator), new Vector2_8.Vector2(400, 200), new Vector2_8.Vector2(480, 526), images) || this;
+            var _this = _super.call(this, Programs_3.Programs.Hackinator, "Hackinator", images.getImage(ImageNames_4.ImageNames.Hackinator), new Vector2_9.Vector2(400, 200), new Vector2_9.Vector2(480, 526), images) || this;
             _this.resources = resources;
             _this.input = input;
             _this.isHacking = false;
@@ -1043,35 +1216,35 @@ define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Class
             _this.displayHeight = 5;
             _this.fullCodeString = null;
             _this.rectangles = [
-                { rectangle: new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 78), new Vector2_8.Vector2(448, 160)), colour: GameColour_4.GameColour.greyscale100 },
-                { rectangle: new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 78), new Vector2_8.Vector2(446, 158)), colour: GameColour_4.GameColour.greyscale50 },
-                { rectangle: new Rectangle_4.Rectangle(new Vector2_8.Vector2(18, 80), new Vector2_8.Vector2(444, 156)), colour: GameColour_4.GameColour.greyscale100 },
-                { rectangle: new Rectangle_4.Rectangle(new Vector2_8.Vector2(18, 80), new Vector2_8.Vector2(442, 154)), colour: GameColour_4.GameColour.greyscale0 }
+                { rectangle: new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 78), new Vector2_9.Vector2(448, 160)), colour: GameColour_5.GameColour.greyscale100 },
+                { rectangle: new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 78), new Vector2_9.Vector2(446, 158)), colour: GameColour_5.GameColour.greyscale50 },
+                { rectangle: new Rectangle_5.Rectangle(new Vector2_9.Vector2(18, 80), new Vector2_9.Vector2(444, 156)), colour: GameColour_5.GameColour.greyscale100 },
+                { rectangle: new Rectangle_5.Rectangle(new Vector2_9.Vector2(18, 80), new Vector2_9.Vector2(442, 154)), colour: GameColour_5.GameColour.greyscale0 }
             ];
             fetch("scripts/Main.js")
                 .then(function (x) { return x.text(); })
                 .then(function (x) { return _this.fullCodeString = _this.formatCodeString(x); });
-            _this.hackingButton = new TextButton_2.TextButton("Start hacking", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 16), new Vector2_8.Vector2(192, 40)), function () {
+            _this.hackingButton = new TextButton_3.TextButton("Start hacking", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 16), new Vector2_9.Vector2(192, 40)), function () {
                 _this.isHacking = !_this.isHacking;
                 _this.hackingButton.text = _this.isHacking ? "Stop hacking" : "Start hacking";
             });
-            _this.passwordCrackerButton = new TextButton_2.TextButton("Password cracker", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 254), new Vector2_8.Vector2(240, 40)), function () {
+            _this.passwordCrackerButton = new TextButton_3.TextButton("Password cracker", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 254), new Vector2_9.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.passwordCrackerCost();
                 _this.resources.hackinatorPasswordCrackerLevel++;
             }, function () { return _this.resources.money >= _this.passwordCrackerCost(); });
-            _this.sqlInjectionButton = new TextButton_2.TextButton("SQL Injection", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 306), new Vector2_8.Vector2(240, 40)), function () {
+            _this.sqlInjectionButton = new TextButton_3.TextButton("SQL injection", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 306), new Vector2_9.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.sqlInjectionCost();
                 _this.resources.hackinatorSqlInjectionLevel++;
             }, function () { return _this.resources.money >= _this.sqlInjectionCost(); });
-            _this.keyDecryptorButton = new TextButton_2.TextButton("Key Decryptor", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 358), new Vector2_8.Vector2(240, 40)), function () {
+            _this.keyDecryptorButton = new TextButton_3.TextButton("Key decryptor", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 358), new Vector2_9.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.keyDecryptorCost();
                 _this.resources.hackinatorKeyDecryptor++;
             }, function () { return _this.resources.money >= _this.keyDecryptorCost(); });
-            _this.botnetButton = new TextButton_2.TextButton("Botnet", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 410), new Vector2_8.Vector2(240, 40)), function () {
+            _this.botnetButton = new TextButton_3.TextButton("Botnet", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 410), new Vector2_9.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.botnetCost();
                 _this.resources.hackinatorBotnetLevel++;
             }, function () { return _this.resources.money >= _this.botnetCost(); });
-            _this.ransomwareButton = new TextButton_2.TextButton("Ransomware", new Rectangle_4.Rectangle(new Vector2_8.Vector2(16, 462), new Vector2_8.Vector2(240, 40)), function () {
+            _this.ransomwareButton = new TextButton_3.TextButton("Ransomware", new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 462), new Vector2_9.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.ransomwareCost();
                 _this.resources.hackinatorRansomwareLevel++;
             }, function () { return _this.resources.money >= _this.ransomwareCost(); });
@@ -1105,13 +1278,13 @@ define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Class
         };
         HackinatorPanel.prototype.drawPanel = function (context, panelRectangle) {
             this.buttons.forEach(function (x) { return x.draw(context, panelRectangle.topLeft()); });
-            context.drawString("$" + Functions_2.numberWithPostfix(this.moneyPerTick() * GameBase_2.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_8.Vector2(224, 24)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.passwordCrackerCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 262)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.sqlInjectionCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 314)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.keyDecryptorCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 366)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.botnetCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 418)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_2.numberWithPostfix(this.ransomwareCost()), panelRectangle.topLeft().add(new Vector2_8.Vector2(272, 470)), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.text, Align_5.Align.TopLeft);
-            this.rectangles.forEach(function (x) { return context.drawFillRectangle(new Rectangle_4.Rectangle(x.rectangle.position.add(panelRectangle.topLeft()), x.rectangle.size), x.colour); });
+            context.drawString("$" + Functions_3.numberWithPostfix(this.moneyPerTick() * GameBase_3.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_9.Vector2(224, 24)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_3.numberWithPostfix(this.passwordCrackerCost()), panelRectangle.topLeft().add(new Vector2_9.Vector2(272, 262)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_3.numberWithPostfix(this.sqlInjectionCost()), panelRectangle.topLeft().add(new Vector2_9.Vector2(272, 314)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_3.numberWithPostfix(this.keyDecryptorCost()), panelRectangle.topLeft().add(new Vector2_9.Vector2(272, 366)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_3.numberWithPostfix(this.botnetCost()), panelRectangle.topLeft().add(new Vector2_9.Vector2(272, 418)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_3.numberWithPostfix(this.ransomwareCost()), panelRectangle.topLeft().add(new Vector2_9.Vector2(272, 470)), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, Align_6.Align.TopLeft);
+            this.rectangles.forEach(function (x) { return context.drawFillRectangle(new Rectangle_5.Rectangle(x.rectangle.position.add(panelRectangle.topLeft()), x.rectangle.size), x.colour); });
             this.drawCodeStringDisplay(context, panelRectangle.topLeft());
         };
         HackinatorPanel.prototype.passwordCrackerCost = function () {
@@ -1130,7 +1303,7 @@ define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Class
             return Math.pow(6.6, this.resources.hackinatorRansomwareLevel + 3) * 100000;
         };
         HackinatorPanel.prototype.moneyPerTick = function () {
-            return 10000 * GameBase_2.GameBase.updateTime *
+            return 10000 * GameBase_3.GameBase.updateTime *
                 this.resources.hackinatorPasswordCrackerLevel *
                 this.resources.hackinatorSqlInjectionLevel *
                 this.resources.hackinatorKeyDecryptor *
@@ -1171,10 +1344,10 @@ define("Game/Classes/HackinatorPanel", ["require", "exports", "Boilerplate/Class
         HackinatorPanel.prototype.drawCodeStringDisplay = function (context, offset) {
             for (var i = 0; i < this.displayHeight; i++)
                 for (var j = 0; j < this.codeStrings[i].length; j++)
-                    context.drawString(this.codeStrings[i][j], offset.add(new Vector2_8.Vector2(27 + (j * 14), 90 + (i * 32))), 32, Fonts_4.Fonts.PixelOperator, GameColour_4.GameColour.textConsole, Align_5.Align.Center);
+                    context.drawString(this.codeStrings[i][j], offset.add(new Vector2_9.Vector2(27 + (j * 14), 90 + (i * 32))), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.textConsole, Align_6.Align.Center);
         };
         return HackinatorPanel;
-    }(Panel_2.Panel));
+    }(Panel_3.Panel));
     exports.HackinatorPanel = HackinatorPanel;
 });
 define("Game/Classes/Picture", ["require", "exports"], function (require, exports) {
@@ -1193,7 +1366,7 @@ define("Game/Classes/Picture", ["require", "exports"], function (require, export
     }());
     exports.Picture = Picture;
 });
-define("Game/Classes/Text", ["require", "exports", "Boilerplate/Enums/Fonts", "Game/Modules/GameColour"], function (require, exports, Fonts_5, GameColour_5) {
+define("Game/Classes/Text", ["require", "exports", "Boilerplate/Enums/Fonts", "Game/Modules/GameColour"], function (require, exports, Fonts_6, GameColour_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Text = void 0;
@@ -1204,45 +1377,54 @@ define("Game/Classes/Text", ["require", "exports", "Boilerplate/Enums/Fonts", "G
             this.align = align;
         }
         Text.prototype.draw = function (context, offset) {
-            context.drawString(typeof this.text === "string" ? this.text : this.text(), this.position.add(offset), 32, Fonts_5.Fonts.PixelOperator, GameColour_5.GameColour.text, this.align);
+            context.drawString(typeof this.text === "string" ? this.text : this.text(), this.position.add(offset), 32, Fonts_6.Fonts.PixelOperator, GameColour_6.GameColour.text, this.align);
         };
         return Text;
     }());
     exports.Text = Text;
 });
-define("Game/Classes/ProgramShopPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Functions", "Game/Classes/Panel", "Game/Classes/Picture", "Game/Classes/Text", "Game/Classes/TextButton"], function (require, exports, Rectangle_5, Vector2_9, Align_6, ImageNames_4, Programs_3, Functions_3, Panel_3, Picture_1, Text_1, TextButton_3) {
+define("Game/Classes/ProgramShopPanel", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Functions", "Game/Classes/Panel", "Game/Classes/Picture", "Game/Classes/Text", "Game/Classes/TextButton"], function (require, exports, Rectangle_6, Vector2_10, Align_7, ImageNames_5, Programs_4, Functions_4, Panel_4, Picture_1, Text_1, TextButton_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProgramShopPanel = void 0;
     var ProgramShopPanel = /** @class */ (function (_super) {
         __extends(ProgramShopPanel, _super);
         function ProgramShopPanel(images, resources, input) {
-            var _this = _super.call(this, Programs_3.Programs.ProgramShop, "Program Shop", images.getImage(ImageNames_4.ImageNames.ProgramShop), new Vector2_9.Vector2(900, 0), new Vector2_9.Vector2(664, 400), images) || this;
+            var _this = _super.call(this, Programs_4.Programs.ProgramShop, "Program Shop", images.getImage(ImageNames_5.ImageNames.ProgramShop), new Vector2_10.Vector2(900, 0), new Vector2_10.Vector2(664, 400), images) || this;
             _this.resources = resources;
             _this.input = input;
             _this.cryptCoinMinerCost = 10;
             _this.hackinatorCost = 100000;
-            _this.purchaseCryptCoinMinerButton = new TextButton_3.TextButton("Purchase", new Rectangle_5.Rectangle(new Vector2_9.Vector2(480, 16), new Vector2_9.Vector2(160, 40)), function () {
+            _this.autoStonksCost = 10000000000;
+            _this.purchaseCryptCoinMinerButton = new TextButton_4.TextButton("Purchase", new Rectangle_6.Rectangle(new Vector2_10.Vector2(480, 16), new Vector2_10.Vector2(160, 40)), function () {
                 _this.resources.money -= _this.cryptCoinMinerCost;
                 _this.resources.programCryptCoinMinerUnlocked = true;
             }, function () { return !_this.resources.programCryptCoinMinerUnlocked && _this.resources.money >= _this.cryptCoinMinerCost; }, function () { return _this.purchaseCryptCoinMinerButton.text = _this.resources.programCryptCoinMinerUnlocked ? "Purchased" : "Purchase"; }, function () { return _this.purchaseCryptCoinMinerButton.text = _this.resources.programCryptCoinMinerUnlocked ? "Purchased" : "Purchase"; });
-            _this.purchaseHackinatorButton = new TextButton_3.TextButton("Purchase", new Rectangle_5.Rectangle(new Vector2_9.Vector2(480, 68), new Vector2_9.Vector2(160, 40)), function () {
+            _this.purchaseHackinatorButton = new TextButton_4.TextButton("Purchase", new Rectangle_6.Rectangle(new Vector2_10.Vector2(480, 68), new Vector2_10.Vector2(160, 40)), function () {
                 _this.resources.money -= _this.hackinatorCost;
                 _this.resources.programHackinatorUnlocked = true;
             }, function () { return !_this.resources.programHackinatorUnlocked && _this.resources.money >= _this.hackinatorCost; }, function () { return _this.purchaseHackinatorButton.text = _this.resources.programHackinatorUnlocked ? "Purchased" : "Purchase"; }, function () { return _this.purchaseHackinatorButton.text = _this.resources.programHackinatorUnlocked ? "Purchased" : "Purchase"; });
+            _this.purchaseAutoStonksButton = new TextButton_4.TextButton("Purchase", new Rectangle_6.Rectangle(new Vector2_10.Vector2(480, 120), new Vector2_10.Vector2(160, 40)), function () {
+                _this.resources.money -= _this.autoStonksCost;
+                _this.resources.programAutoStonksUnlocked = true;
+            }, function () { return !_this.resources.programAutoStonksUnlocked && _this.resources.money >= _this.autoStonksCost; }, function () { return _this.purchaseAutoStonksButton.text = _this.resources.programAutoStonksUnlocked ? "Purchased" : "Purchase"; }, function () { return _this.purchaseAutoStonksButton.text = _this.resources.programAutoStonksUnlocked ? "Purchased" : "Purchase"; });
             _this.buttons = [
                 _this.purchaseCryptCoinMinerButton,
                 _this.purchaseHackinatorButton,
+                _this.purchaseAutoStonksButton,
             ];
             _this.pictures = [
-                new Picture_1.Picture(images.getImage(ImageNames_4.ImageNames.CryptCoinMiner), new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 24), new Vector2_9.Vector2(32, 32))),
-                new Picture_1.Picture(images.getImage(ImageNames_4.ImageNames.Hackinator), new Rectangle_5.Rectangle(new Vector2_9.Vector2(16, 76), new Vector2_9.Vector2(32, 32))),
+                new Picture_1.Picture(images.getImage(ImageNames_5.ImageNames.CryptCoinMiner), new Rectangle_6.Rectangle(new Vector2_10.Vector2(16, 24), new Vector2_10.Vector2(32, 32))),
+                new Picture_1.Picture(images.getImage(ImageNames_5.ImageNames.Hackinator), new Rectangle_6.Rectangle(new Vector2_10.Vector2(16, 76), new Vector2_10.Vector2(32, 32))),
+                new Picture_1.Picture(images.getImage(ImageNames_5.ImageNames.AutoStonks), new Rectangle_6.Rectangle(new Vector2_10.Vector2(16, 128), new Vector2_10.Vector2(32, 32))),
             ];
             _this.text = [
-                new Text_1.Text("CryptCoin Miner", new Vector2_9.Vector2(56, 24), Align_6.Align.TopLeft),
-                new Text_1.Text("Cost: $" + Functions_3.numberWithPostfix(_this.cryptCoinMinerCost), new Vector2_9.Vector2(280, 24), Align_6.Align.TopLeft),
-                new Text_1.Text("Hackinator", new Vector2_9.Vector2(56, 76), Align_6.Align.TopLeft),
-                new Text_1.Text("Cost: $" + Functions_3.numberWithPostfix(_this.hackinatorCost), new Vector2_9.Vector2(280, 76), Align_6.Align.TopLeft),
+                new Text_1.Text("CryptCoin Miner", new Vector2_10.Vector2(56, 24), Align_7.Align.TopLeft),
+                new Text_1.Text("Cost: $" + Functions_4.numberWithPostfix(_this.cryptCoinMinerCost), new Vector2_10.Vector2(280, 24), Align_7.Align.TopLeft),
+                new Text_1.Text("Hackinator", new Vector2_10.Vector2(56, 76), Align_7.Align.TopLeft),
+                new Text_1.Text("Cost: $" + Functions_4.numberWithPostfix(_this.hackinatorCost), new Vector2_10.Vector2(280, 76), Align_7.Align.TopLeft),
+                new Text_1.Text("AutoStonks", new Vector2_10.Vector2(56, 128), Align_7.Align.TopLeft),
+                new Text_1.Text("Cost: $" + Functions_4.numberWithPostfix(_this.autoStonksCost), new Vector2_10.Vector2(280, 128), Align_7.Align.TopLeft),
             ];
             return _this;
         }
@@ -1256,29 +1438,29 @@ define("Game/Classes/ProgramShopPanel", ["require", "exports", "Boilerplate/Clas
             this.text.forEach(function (x) { return x.draw(context, panelRectangle.topLeft()); });
         };
         return ProgramShopPanel;
-    }(Panel_3.Panel));
+    }(Panel_4.Panel));
     exports.ProgramShopPanel = ProgramShopPanel;
 });
-define("Game/Classes/WalletPanel", ["require", "exports", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Functions", "Game/Modules/GameColour", "Game/Classes/Panel"], function (require, exports, Vector2_10, Align_7, Fonts_6, ImageNames_5, Programs_4, Functions_4, GameColour_6, Panel_4) {
+define("Game/Classes/WalletPanel", ["require", "exports", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Functions", "Game/Modules/GameColour", "Game/Classes/Panel"], function (require, exports, Vector2_11, Align_8, Fonts_7, ImageNames_6, Programs_5, Functions_5, GameColour_7, Panel_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.WalletPanel = void 0;
     var WalletPanel = /** @class */ (function (_super) {
         __extends(WalletPanel, _super);
         function WalletPanel(images, resources) {
-            var _this = _super.call(this, Programs_4.Programs.Wallet, "Wallet", images.getImage(ImageNames_5.ImageNames.Wallet), Vector2_10.Vector2.zero(), new Vector2_10.Vector2(200, 34), images) || this;
+            var _this = _super.call(this, Programs_5.Programs.Wallet, "Wallet", images.getImage(ImageNames_6.ImageNames.Wallet), Vector2_11.Vector2.zero(), new Vector2_11.Vector2(200, 34), images) || this;
             _this.resources = resources;
             return _this;
         }
         WalletPanel.prototype.updatePanel = function () { };
         WalletPanel.prototype.drawPanel = function (context, panelRectangle) {
-            context.drawString("$" + Functions_4.numberWithPostfix(this.resources.money), panelRectangle.topLeft(), 32, Fonts_6.Fonts.PixelOperator, GameColour_6.GameColour.text, Align_7.Align.TopLeft);
+            context.drawString("$" + Functions_5.numberWithPostfix(this.resources.money), panelRectangle.topLeft(), 32, Fonts_7.Fonts.PixelOperator, GameColour_7.GameColour.text, Align_8.Align.TopLeft);
         };
         return WalletPanel;
-    }(Panel_4.Panel));
+    }(Panel_5.Panel));
     exports.WalletPanel = WalletPanel;
 });
-define("Game/Classes/ProgramManager", ["require", "exports", "Game/Enums/Programs", "Game/Classes/CryptCoinMinerPanel", "Game/Classes/HackinatorPanel", "Game/Classes/ProgramShopPanel", "Game/Classes/WalletPanel"], function (require, exports, Programs_5, CryptCoinMinerPanel_1, HackinatorPanel_1, ProgramShopPanel_1, WalletPanel_1) {
+define("Game/Classes/ProgramManager", ["require", "exports", "Game/Enums/Programs", "Game/Classes/AutoStonksPanel", "Game/Classes/CryptCoinMinerPanel", "Game/Classes/HackinatorPanel", "Game/Classes/ProgramShopPanel", "Game/Classes/WalletPanel"], function (require, exports, Programs_6, AutoStonksPanel_1, CryptCoinMinerPanel_1, HackinatorPanel_1, ProgramShopPanel_1, WalletPanel_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ProgramManager = void 0;
@@ -1288,10 +1470,11 @@ define("Game/Classes/ProgramManager", ["require", "exports", "Game/Enums/Program
             this.panelCreators = new Map();
         }
         ProgramManager.prototype.initialize = function (images, resources, input) {
-            this.panelCreators.set(Programs_5.Programs.Wallet, function () { return new WalletPanel_1.WalletPanel(images, resources); });
-            this.panelCreators.set(Programs_5.Programs.ProgramShop, function () { return new ProgramShopPanel_1.ProgramShopPanel(images, resources, input); });
-            this.panelCreators.set(Programs_5.Programs.CryptCoinMiner, function () { return new CryptCoinMinerPanel_1.CryptCoinMinerPanel(images, resources, input); });
-            this.panelCreators.set(Programs_5.Programs.Hackinator, function () { return new HackinatorPanel_1.HackinatorPanel(images, resources, input); });
+            this.panelCreators.set(Programs_6.Programs.Wallet, function () { return new WalletPanel_1.WalletPanel(images, resources); });
+            this.panelCreators.set(Programs_6.Programs.ProgramShop, function () { return new ProgramShopPanel_1.ProgramShopPanel(images, resources, input); });
+            this.panelCreators.set(Programs_6.Programs.CryptCoinMiner, function () { return new CryptCoinMinerPanel_1.CryptCoinMinerPanel(images, resources, input); });
+            this.panelCreators.set(Programs_6.Programs.Hackinator, function () { return new HackinatorPanel_1.HackinatorPanel(images, resources, input); });
+            this.panelCreators.set(Programs_6.Programs.AutoStonks, function () { return new AutoStonksPanel_1.AutoStonksPanel(images, resources, input); });
         };
         ProgramManager.prototype.runProgram = function (program) {
             if (this.panels.every(function (x) { return x.program !== program; })) {
@@ -1349,30 +1532,30 @@ define("Game/Classes/StartMenuEntry", ["require", "exports"], function (require,
     }());
     exports.StartMenuEntry = StartMenuEntry;
 });
-define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/StartMenuEntry"], function (require, exports, Rectangle_6, Vector2_11, Align_8, Fonts_7, MouseButton_3, ImageNames_6, Programs_6, GameColour_7, StartMenuEntry_1) {
+define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Boilerplate/Enums/MouseButton", "Game/Enums/ImageNames", "Game/Enums/Programs", "Game/Modules/GameColour", "Game/Classes/StartMenuEntry"], function (require, exports, Rectangle_7, Vector2_12, Align_9, Fonts_8, MouseButton_3, ImageNames_7, Programs_7, GameColour_8, StartMenuEntry_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StartMenu = void 0;
     var StartMenu = /** @class */ (function () {
         function StartMenu() {
             this.startMenuOpen = false;
-            this.startButtonRect1 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(4, 0), new Vector2_11.Vector2(114, 44));
-            this.startButtonRect2 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(4, 0), new Vector2_11.Vector2(112, 42));
-            this.startButtonRect3 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(6, 0), new Vector2_11.Vector2(110, 40));
-            this.startButtonRect4 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(6, 0), new Vector2_11.Vector2(108, 38));
-            this.startButtonRect5 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(8, 0), new Vector2_11.Vector2(106, 36));
+            this.startButtonRect1 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(4, 0), new Vector2_12.Vector2(114, 44));
+            this.startButtonRect2 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(4, 0), new Vector2_12.Vector2(112, 42));
+            this.startButtonRect3 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(6, 0), new Vector2_12.Vector2(110, 40));
+            this.startButtonRect4 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(6, 0), new Vector2_12.Vector2(108, 38));
+            this.startButtonRect5 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(8, 0), new Vector2_12.Vector2(106, 36));
             this.startButtonOffset1 = 48;
             this.startButtonOffset2 = 48;
             this.startButtonOffset3 = 46;
             this.startButtonOffset4 = 46;
             this.startButtonOffset5 = 44;
-            this.startTextOffset = new Vector2_11.Vector2(4, 0);
-            this.startImageRect = new Rectangle_6.Rectangle(new Vector2_11.Vector2(0, 0), new Vector2_11.Vector2(32, 32));
-            this.startMenuRectangle1 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(4, 0), new Vector2_11.Vector2(328, 480));
-            this.startMenuRectangle2 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(4, 0), new Vector2_11.Vector2(326, 478));
-            this.startMenuRectangle3 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(6, 0), new Vector2_11.Vector2(324, 476));
-            this.startMenuRectangle4 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(6, 0), new Vector2_11.Vector2(322, 474));
-            this.startMenuRectangle5 = new Rectangle_6.Rectangle(new Vector2_11.Vector2(8, 0), new Vector2_11.Vector2(320, 472));
+            this.startTextOffset = new Vector2_12.Vector2(4, 0);
+            this.startImageRect = new Rectangle_7.Rectangle(new Vector2_12.Vector2(0, 0), new Vector2_12.Vector2(32, 32));
+            this.startMenuRectangle1 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(4, 0), new Vector2_12.Vector2(328, 480));
+            this.startMenuRectangle2 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(4, 0), new Vector2_12.Vector2(326, 478));
+            this.startMenuRectangle3 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(6, 0), new Vector2_12.Vector2(324, 476));
+            this.startMenuRectangle4 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(6, 0), new Vector2_12.Vector2(322, 474));
+            this.startMenuRectangle5 = new Rectangle_7.Rectangle(new Vector2_12.Vector2(8, 0), new Vector2_12.Vector2(320, 472));
             this.startMenuOffset1 = 528;
             this.startMenuOffset2 = 528;
             this.startMenuOffset3 = 526;
@@ -1382,7 +1565,7 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
             this.selectedEntries = [];
         }
         StartMenu.prototype.initialize = function (images, resources) {
-            this.startImage = images.getImage(ImageNames_6.ImageNames.Start);
+            this.startImage = images.getImage(ImageNames_7.ImageNames.Start);
             this.setupStartMenu(images, resources);
         };
         StartMenu.prototype.update = function (context, input, runner) {
@@ -1402,7 +1585,7 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
             var installed = this.getInstalledPrograms();
             if (this.startMenuOpen) {
                 for (var i = 0; i < installed.length; i++) {
-                    var entryRectangle = new Rectangle_6.Rectangle(new Vector2_11.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_11.Vector2(276, 64));
+                    var entryRectangle = new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64));
                     if (entryRectangle.intersectsPoint(input.getMousePosition())) {
                         newSelectedEntries.push(installed[i].id);
                     }
@@ -1416,7 +1599,7 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
                 }
                 else {
                     for (var i = 0; i < installed.length; i++) {
-                        var entryRectangle = new Rectangle_6.Rectangle(new Vector2_11.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_11.Vector2(276, 64));
+                        var entryRectangle = new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64));
                         if (entryRectangle.intersectsPoint(input.getMousePosition())) {
                             var entry = installed[i];
                             if (entry.program != null) {
@@ -1432,28 +1615,28 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
             }
         };
         StartMenu.prototype.draw = function (context) {
-            context.drawFillRectangle(this.startButtonRect1, GameColour_7.GameColour.greyscale0);
-            context.drawFillRectangle(this.startButtonRect2, GameColour_7.GameColour.greyscale100);
-            context.drawFillRectangle(this.startButtonRect3, GameColour_7.GameColour.greyscale50);
-            context.drawFillRectangle(this.startButtonRect4, GameColour_7.GameColour.greyscale87);
-            context.drawFillRectangle(this.startButtonRect5, GameColour_7.GameColour.greyscale75);
-            context.drawString("Start", this.startButtonRect5.rightCenter().subtract(this.startTextOffset), 32, Fonts_7.Fonts.PixelOperator, GameColour_7.GameColour.text, Align_8.Align.Right);
+            context.drawFillRectangle(this.startButtonRect1, GameColour_8.GameColour.greyscale0);
+            context.drawFillRectangle(this.startButtonRect2, GameColour_8.GameColour.greyscale100);
+            context.drawFillRectangle(this.startButtonRect3, GameColour_8.GameColour.greyscale50);
+            context.drawFillRectangle(this.startButtonRect4, GameColour_8.GameColour.greyscale87);
+            context.drawFillRectangle(this.startButtonRect5, GameColour_8.GameColour.greyscale75);
+            context.drawString("Start", this.startButtonRect5.rightCenter().subtract(this.startTextOffset), 32, Fonts_8.Fonts.PixelOperator, GameColour_8.GameColour.text, Align_9.Align.Right);
             context.drawImageRectangle(this.startImage, this.startImageRect);
             if (this.startMenuOpen) {
-                context.drawFillRectangle(this.startMenuRectangle1, GameColour_7.GameColour.greyscale0);
-                context.drawFillRectangle(this.startMenuRectangle2, GameColour_7.GameColour.greyscale87);
-                context.drawFillRectangle(this.startMenuRectangle3, GameColour_7.GameColour.greyscale50);
-                context.drawFillRectangle(this.startMenuRectangle4, GameColour_7.GameColour.greyscale100);
-                context.drawFillRectangle(this.startMenuRectangle5, GameColour_7.GameColour.greyscale75);
+                context.drawFillRectangle(this.startMenuRectangle1, GameColour_8.GameColour.greyscale0);
+                context.drawFillRectangle(this.startMenuRectangle2, GameColour_8.GameColour.greyscale87);
+                context.drawFillRectangle(this.startMenuRectangle3, GameColour_8.GameColour.greyscale50);
+                context.drawFillRectangle(this.startMenuRectangle4, GameColour_8.GameColour.greyscale100);
+                context.drawFillRectangle(this.startMenuRectangle5, GameColour_8.GameColour.greyscale75);
                 var installed_1 = this.getInstalledPrograms();
                 var _loop_1 = function (i) {
-                    var textColour = GameColour_7.GameColour.text;
+                    var textColour = GameColour_8.GameColour.text;
                     if (this_1.selectedEntries.some(function (x) { return x === installed_1[i].id; })) {
-                        context.drawFillRectangle(new Rectangle_6.Rectangle(new Vector2_11.Vector2(this_1.startMenuRectangle5.position.x + 42, this_1.startMenuRectangle5.position.y + 64 * i), new Vector2_11.Vector2(276, 64)), GameColour_7.GameColour.selected);
-                        textColour = GameColour_7.GameColour.selectedText;
+                        context.drawFillRectangle(new Rectangle_7.Rectangle(new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 42, this_1.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64)), GameColour_8.GameColour.selected);
+                        textColour = GameColour_8.GameColour.selectedText;
                     }
-                    context.drawImageRectangle(installed_1[i].image, new Rectangle_6.Rectangle(new Vector2_11.Vector2(this_1.startMenuRectangle5.position.x + 62, this_1.startMenuRectangle5.position.y + 8 + 64 * i), new Vector2_11.Vector2(48, 48)));
-                    context.drawString(installed_1[i].name, new Vector2_11.Vector2(this_1.startMenuRectangle5.position.x + 130, this_1.startMenuRectangle5.position.y + 32 + 64 * i), 32, Fonts_7.Fonts.PixelOperator, textColour, Align_8.Align.Left);
+                    context.drawImageRectangle(installed_1[i].image, new Rectangle_7.Rectangle(new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 62, this_1.startMenuRectangle5.position.y + 8 + 64 * i), new Vector2_12.Vector2(48, 48)));
+                    context.drawString(installed_1[i].name, new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 130, this_1.startMenuRectangle5.position.y + 32 + 64 * i), 32, Fonts_8.Fonts.PixelOperator, textColour, Align_9.Align.Left);
                 };
                 var this_1 = this;
                 for (var i = 0; i < installed_1.length; i++) {
@@ -1463,10 +1646,11 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
         };
         StartMenu.prototype.setupStartMenu = function (images, resources) {
             this.startMenuEntries = [];
-            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(1, "Wallet", images.getImage(ImageNames_6.ImageNames.Wallet), function () { return true; }, Programs_6.Programs.Wallet));
-            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(2, "Program Shop", images.getImage(ImageNames_6.ImageNames.ProgramShop), function () { return true; }, Programs_6.Programs.ProgramShop));
-            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(3, "CryptCoin Miner", images.getImage(ImageNames_6.ImageNames.CryptCoinMiner), function () { return resources.programCryptCoinMinerUnlocked; }, Programs_6.Programs.CryptCoinMiner));
-            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(4, "Hackinator", images.getImage(ImageNames_6.ImageNames.Hackinator), function () { return resources.programHackinatorUnlocked; }, Programs_6.Programs.Hackinator));
+            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(1, "Wallet", images.getImage(ImageNames_7.ImageNames.Wallet), function () { return true; }, Programs_7.Programs.Wallet));
+            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(2, "Program Shop", images.getImage(ImageNames_7.ImageNames.ProgramShop), function () { return true; }, Programs_7.Programs.ProgramShop));
+            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(3, "CryptCoin Miner", images.getImage(ImageNames_7.ImageNames.CryptCoinMiner), function () { return resources.programCryptCoinMinerUnlocked; }, Programs_7.Programs.CryptCoinMiner));
+            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(4, "Hackinator", images.getImage(ImageNames_7.ImageNames.Hackinator), function () { return resources.programHackinatorUnlocked; }, Programs_7.Programs.Hackinator));
+            this.startMenuEntries.push(new StartMenuEntry_1.StartMenuEntry(5, "AutoStonks", images.getImage(ImageNames_7.ImageNames.AutoStonks), function () { return resources.programAutoStonksUnlocked; }, Programs_7.Programs.AutoStonks));
         };
         StartMenu.prototype.getInstalledPrograms = function () {
             return this.startMenuEntries.filter(function (x) { return x.installed(); });
@@ -1475,24 +1659,24 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
     }());
     exports.StartMenu = StartMenu;
 });
-define("Game/Classes/Taskbar", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Modules/GameColour"], function (require, exports, Rectangle_7, Vector2_12, Align_9, Fonts_8, GameColour_8) {
+define("Game/Classes/Taskbar", ["require", "exports", "Boilerplate/Classes/Rectangle", "Boilerplate/Classes/Vector2", "Boilerplate/Enums/Align", "Boilerplate/Enums/Fonts", "Game/Modules/GameColour"], function (require, exports, Rectangle_8, Vector2_13, Align_10, Fonts_9, GameColour_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Taskbar = void 0;
     var Taskbar = /** @class */ (function () {
         function Taskbar() {
-            this.taskbarRect1 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(0, 52));
-            this.taskbarRect2 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(0, 2));
-            this.taskbarRect3 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(0, 2));
+            this.taskbarRect1 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(0, 52));
+            this.taskbarRect2 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(0, 2));
+            this.taskbarRect3 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(0, 2));
             this.taskbarOffset1 = 52;
             this.taskbarOffset2 = 54;
             this.taskbarOffset3 = 56;
-            this.timeRect1 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(128, 44));
-            this.timeRect2 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(126, 42));
-            this.timeRect3 = new Rectangle_7.Rectangle(Vector2_12.Vector2.zero(), new Vector2_12.Vector2(124, 40));
-            this.timeOffset1 = new Vector2_12.Vector2(132, 48);
-            this.timeOffset2 = new Vector2_12.Vector2(132, 48);
-            this.timeOffset3 = new Vector2_12.Vector2(130, 46);
+            this.timeRect1 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(128, 44));
+            this.timeRect2 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(126, 42));
+            this.timeRect3 = new Rectangle_8.Rectangle(Vector2_13.Vector2.zero(), new Vector2_13.Vector2(124, 40));
+            this.timeOffset1 = new Vector2_13.Vector2(132, 48);
+            this.timeOffset2 = new Vector2_13.Vector2(132, 48);
+            this.timeOffset3 = new Vector2_13.Vector2(130, 46);
             this.timeString = "";
         }
         Taskbar.prototype.update = function (context) {
@@ -1521,26 +1705,26 @@ define("Game/Classes/Taskbar", ["require", "exports", "Boilerplate/Classes/Recta
             this.timeString = hour + ":" + minutes + " " + meridiem;
         };
         Taskbar.prototype.draw = function (context) {
-            context.drawFillRectangle(this.taskbarRect1, GameColour_8.GameColour.greyscale75);
-            context.drawFillRectangle(this.taskbarRect2, GameColour_8.GameColour.greyscale87);
-            context.drawFillRectangle(this.taskbarRect3, GameColour_8.GameColour.greyscale100);
-            context.drawFillRectangle(this.timeRect1, GameColour_8.GameColour.greyscale100);
-            context.drawFillRectangle(this.timeRect2, GameColour_8.GameColour.greyscale50);
-            context.drawFillRectangle(this.timeRect3, GameColour_8.GameColour.greyscale75);
-            context.drawString(this.timeString, this.timeRect3.center(), 32, Fonts_8.Fonts.PixelOperator, GameColour_8.GameColour.text, Align_9.Align.Center);
+            context.drawFillRectangle(this.taskbarRect1, GameColour_9.GameColour.greyscale75);
+            context.drawFillRectangle(this.taskbarRect2, GameColour_9.GameColour.greyscale87);
+            context.drawFillRectangle(this.taskbarRect3, GameColour_9.GameColour.greyscale100);
+            context.drawFillRectangle(this.timeRect1, GameColour_9.GameColour.greyscale100);
+            context.drawFillRectangle(this.timeRect2, GameColour_9.GameColour.greyscale50);
+            context.drawFillRectangle(this.timeRect3, GameColour_9.GameColour.greyscale75);
+            context.drawString(this.timeString, this.timeRect3.center(), 32, Fonts_9.Fonts.PixelOperator, GameColour_9.GameColour.text, Align_10.Align.Center);
         };
         return Taskbar;
     }());
     exports.Taskbar = Taskbar;
 });
-define("Game/Classes/Game", ["require", "exports", "Boilerplate/Classes/GameBase", "Game/Enums/ImageNames", "Game/Classes/ProgramManager", "Game/Classes/Resources", "Game/Classes/StartMenu", "Game/Classes/Taskbar"], function (require, exports, GameBase_3, ImageNames_7, ProgramManager_1, Resources_1, StartMenu_1, Taskbar_1) {
+define("Game/Classes/Game", ["require", "exports", "Boilerplate/Classes/GameBase", "Game/Enums/ImageNames", "Game/Classes/ProgramManager", "Game/Classes/Resources", "Game/Classes/StartMenu", "Game/Classes/Taskbar"], function (require, exports, GameBase_4, ImageNames_8, ProgramManager_1, Resources_1, StartMenu_1, Taskbar_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Game = void 0;
     var Game = /** @class */ (function (_super) {
         __extends(Game, _super);
         function Game() {
-            return _super.call(this, ImageNames_7.ImageNames) || this;
+            return _super.call(this, ImageNames_8.ImageNames) || this;
         }
         Game.prototype.initialize = function () {
             this.resources = new Resources_1.Resources();
@@ -1561,7 +1745,7 @@ define("Game/Classes/Game", ["require", "exports", "Boilerplate/Classes/GameBase
             this.startMenu.draw(this.context);
         };
         return Game;
-    }(GameBase_3.GameBase));
+    }(GameBase_4.GameBase));
     exports.Game = Game;
 });
 define("Main", ["require", "exports", "Game/Classes/Game", "Boilerplate/Classes/Context2D"], function (require, exports, Game_1) {

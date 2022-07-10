@@ -65,12 +65,12 @@ export class HackinatorPanel extends Panel {
             this.resources.hackinatorPasswordCrackerLevel++;
         }, () => this.resources.money >= this.passwordCrackerCost());
 
-        this.sqlInjectionButton = new TextButton("SQL Injection", new Rectangle(new Vector2(16, 306), new Vector2(240, 40)), () => {
+        this.sqlInjectionButton = new TextButton("SQL injection", new Rectangle(new Vector2(16, 306), new Vector2(240, 40)), () => {
             this.resources.money -= this.sqlInjectionCost();
             this.resources.hackinatorSqlInjectionLevel++;
         }, () => this.resources.money >= this.sqlInjectionCost());
 
-        this.keyDecryptorButton = new TextButton("Key Decryptor", new Rectangle(new Vector2(16, 358), new Vector2(240, 40)), () => {
+        this.keyDecryptorButton = new TextButton("Key decryptor", new Rectangle(new Vector2(16, 358), new Vector2(240, 40)), () => {
             this.resources.money -= this.keyDecryptorCost();
             this.resources.hackinatorKeyDecryptor++;
         }, () => this.resources.money >= this.keyDecryptorCost());
@@ -159,7 +159,7 @@ export class HackinatorPanel extends Panel {
     }
 
     moneyPerTick() {
-        return 10000 * GameBase.updateTime *
+        return 10_000 * GameBase.updateTime *
             this.resources.hackinatorPasswordCrackerLevel *
             this.resources.hackinatorSqlInjectionLevel *
             this.resources.hackinatorKeyDecryptor *

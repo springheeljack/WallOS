@@ -2,6 +2,7 @@ import { Context2D } from "../../Boilerplate/Classes/Context2D";
 import { Images } from "../../Boilerplate/Classes/Images";
 import { Input } from "../../Boilerplate/Classes/Input";
 import { Programs } from "../Enums/Programs";
+import { AutoStonksPanel } from "./AutoStonksPanel";
 import { CryptCoinMinerPanel } from "./CryptCoinMinerPanel";
 import { HackinatorPanel } from "./HackinatorPanel";
 import { Panel } from "./Panel";
@@ -18,6 +19,7 @@ export class ProgramManager {
         this.panelCreators.set(Programs.ProgramShop, () => new ProgramShopPanel(images, resources, input));
         this.panelCreators.set(Programs.CryptCoinMiner, () => new CryptCoinMinerPanel(images, resources, input));
         this.panelCreators.set(Programs.Hackinator, () => new HackinatorPanel(images, resources, input));
+        this.panelCreators.set(Programs.AutoStonks, () => new AutoStonksPanel(images, resources, input));
     }
 
     runProgram(program: Programs) {

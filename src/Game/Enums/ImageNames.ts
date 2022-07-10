@@ -7,4 +7,5 @@ export enum ImageNames {
     CryptCoinMiner = "CryptCoinMiner",
     ProgramShop = "ProgramShop",
     Hackinator = "Hackinator",
+    AutoStonks = "AutoStonks",
 }

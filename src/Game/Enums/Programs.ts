@@ -3,4 +3,5 @@ export enum Programs {
     CryptCoinMiner = 2,
     ProgramShop = 3,
     Hackinator = 4,
+    AutoStonks = 5,
 }

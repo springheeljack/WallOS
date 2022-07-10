@@ -20,8 +20,10 @@ export class ProgramShopPanel extends Panel {
 
     cryptCoinMinerCost = 10;
     purchaseCryptCoinMinerButton: TextButton;
-    hackinatorCost = 100000;
+    hackinatorCost = 100_000;
     purchaseHackinatorButton: TextButton;
+    autoStonksCost = 10_000_000_000;
+    purchaseAutoStonksButton: TextButton;
 
     constructor(
         images: Images,
@@ -48,14 +50,25 @@ export class ProgramShopPanel extends Panel {
             () => this.purchaseHackinatorButton.text = this.resources.programHackinatorUnlocked ? "Purchased" : "Purchase",
             () => this.purchaseHackinatorButton.text = this.resources.programHackinatorUnlocked ? "Purchased" : "Purchase");
 
+        this.purchaseAutoStonksButton = new TextButton("Purchase", new Rectangle(new Vector2(480, 120), new Vector2(160, 40)),
+            () => {
+                this.resources.money -= this.autoStonksCost;
+                this.resources.programAutoStonksUnlocked = true;
+            },
+            () => !this.resources.programAutoStonksUnlocked && this.resources.money >= this.autoStonksCost,
+            () => this.purchaseAutoStonksButton.text = this.resources.programAutoStonksUnlocked ? "Purchased" : "Purchase",
+            () => this.purchaseAutoStonksButton.text = this.resources.programAutoStonksUnlocked ? "Purchased" : "Purchase");
+
         this.buttons = [
             this.purchaseCryptCoinMinerButton,
             this.purchaseHackinatorButton,
+            this.purchaseAutoStonksButton,
         ];
 
         this.pictures = [
             new Picture(images.getImage(ImageNames.CryptCoinMiner), new Rectangle(new Vector2(16, 24), new Vector2(32, 32))),
             new Picture(images.getImage(ImageNames.Hackinator), new Rectangle(new Vector2(16, 76), new Vector2(32, 32))),
+            new Picture(images.getImage(ImageNames.AutoStonks), new Rectangle(new Vector2(16, 128), new Vector2(32, 32))),
         ];
 
         this.text = [
@@ -63,6 +76,8 @@ export class ProgramShopPanel extends Panel {
             new Text("Cost: $" + numberWithPostfix(this.cryptCoinMinerCost), new Vector2(280, 24), Align.TopLeft),
             new Text("Hackinator", new Vector2(56, 76), Align.TopLeft),
             new Text("Cost: $" + numberWithPostfix(this.hackinatorCost), new Vector2(280, 76), Align.TopLeft),
+            new Text("AutoStonks", new Vector2(56, 128), Align.TopLeft),
+            new Text("Cost: $" + numberWithPostfix(this.autoStonksCost), new Vector2(280, 128), Align.TopLeft),
         ];
     }
 

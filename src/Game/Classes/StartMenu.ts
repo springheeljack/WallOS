@@ -158,6 +158,9 @@ export class StartMenu {
         this.startMenuEntries.push(new StartMenuEntry(
             4, "Hackinator", images.getImage(ImageNames.Hackinator), () => resources.programHackinatorUnlocked, Programs.Hackinator
         ));
+        this.startMenuEntries.push(new StartMenuEntry(
+            5, "AutoStonks", images.getImage(ImageNames.AutoStonks), () => resources.programAutoStonksUnlocked, Programs.AutoStonks
+        ));
     }
 
     getInstalledPrograms() {
