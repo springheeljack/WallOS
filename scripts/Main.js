@@ -813,7 +813,7 @@ define("Game/Classes/Resources", ["require", "exports"], function (require, expo
             this.hackinatorKeyDecryptor = 1;
             this.hackinatorBotnetLevel = 1;
             this.hackinatorRansomwareLevel = 1;
-            this.autoStonksKrongularLevel = 1;
+            this.autoStonksEconomicsLevel = 1;
             this.autoStonksMarketPredictionLevel = 1;
             this.autoStonksHighFrequencyTradingLevel = 1;
             this.autoStonksInsiderTradingLevel = 1;
@@ -944,10 +944,10 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
                 _this.isTrading = !_this.isTrading;
                 _this.tradingButton.text = _this.isTrading ? "Stop trading" : "Start trading";
             });
-            _this.krongularButton = new TextButton_1.TextButton("Krongular", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 254), new Vector2_7.Vector2(240, 40)), function () {
-                _this.resources.money -= _this.krongularCost();
-                _this.resources.autoStonksKrongularLevel++;
-            }, function () { return _this.resources.money >= _this.krongularCost(); });
+            _this.economicsButton = new TextButton_1.TextButton("Economics 101", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 254), new Vector2_7.Vector2(240, 40)), function () {
+                _this.resources.money -= _this.economicsCost();
+                _this.resources.autoStonksEconomicsLevel++;
+            }, function () { return _this.resources.money >= _this.economicsCost(); });
             _this.marketPredictionButton = new TextButton_1.TextButton("Market prediction", new Rectangle_3.Rectangle(new Vector2_7.Vector2(16, 306), new Vector2_7.Vector2(240, 40)), function () {
                 _this.resources.money -= _this.marketPredictionCost();
                 _this.resources.autoStonksMarketPredictionLevel++;
@@ -966,7 +966,7 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
             }, function () { return _this.resources.money >= _this.pumpAndDumpCost(); });
             _this.buttons = [
                 _this.tradingButton,
-                _this.krongularButton,
+                _this.economicsButton,
                 _this.marketPredictionButton,
                 _this.highFrequencyTradingButton,
                 _this.insiderTradingButton,
@@ -984,7 +984,7 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
                     this.updateTradingDisplay();
                 }
                 this.currentTradingTicks +=
-                    this.resources.autoStonksKrongularLevel +
+                    this.resources.autoStonksEconomicsLevel +
                         this.resources.autoStonksMarketPredictionLevel +
                         this.resources.autoStonksHighFrequencyTradingLevel +
                         this.resources.autoStonksInsiderTradingLevel +
@@ -994,7 +994,7 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
         AutoStonksPanel.prototype.drawPanel = function (context, panelRectangle) {
             this.buttons.forEach(function (x) { return x.draw(context, panelRectangle.topLeft()); });
             context.drawString("$" + Functions_1.numberWithPostfix(this.moneyPerTick() * GameBase_1.GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2_7.Vector2(224, 24)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
-            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.krongularCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 262)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
+            context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.economicsCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 262)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
             context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.marketPredictionCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 314)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
             context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.highFrequencyTradingCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 366)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
             context.drawString("Cost: $" + Functions_1.numberWithPostfix(this.insiderTradingCost()), panelRectangle.topLeft().add(new Vector2_7.Vector2(272, 418)), 32, Fonts_3.Fonts.PixelOperator, GameColour_3.GameColour.text, Align_4.Align.TopLeft);
@@ -1002,8 +1002,8 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
             this.rectangles.forEach(function (x) { return context.drawFillRectangle(new Rectangle_3.Rectangle(x.rectangle.position.add(panelRectangle.topLeft()), x.rectangle.size), x.colour); });
             this.drawTradingDisplay(context, this.rectangles[this.rectangles.length - 1].rectangle.position.add(panelRectangle.topLeft().addNumber(2)));
         };
-        AutoStonksPanel.prototype.krongularCost = function () {
-            return Math.pow(3.3, this.resources.autoStonksKrongularLevel - 1) * 10000000000;
+        AutoStonksPanel.prototype.economicsCost = function () {
+            return Math.pow(3.3, this.resources.autoStonksEconomicsLevel - 1) * 10000000000;
         };
         AutoStonksPanel.prototype.marketPredictionCost = function () {
             return Math.pow(4.4, this.resources.autoStonksMarketPredictionLevel) * 10000000000;
@@ -1019,7 +1019,7 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
         };
         AutoStonksPanel.prototype.moneyPerTick = function () {
             return 1000000000 * GameBase_1.GameBase.updateTime *
-                this.resources.autoStonksKrongularLevel *
+                this.resources.autoStonksEconomicsLevel *
                 this.resources.autoStonksMarketPredictionLevel *
                 this.resources.autoStonksHighFrequencyTradingLevel *
                 this.resources.autoStonksInsiderTradingLevel *

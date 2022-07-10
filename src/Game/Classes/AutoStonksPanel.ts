@@ -23,7 +23,7 @@ export class AutoStonksPanel extends Panel {
     isTrading = false;
 
     tradingButton: TextButton;
-    krongularButton: TextButton;
+    economicsButton: TextButton;
     marketPredictionButton: TextButton;
     highFrequencyTradingButton: TextButton;
     insiderTradingButton: TextButton;
@@ -62,10 +62,10 @@ export class AutoStonksPanel extends Panel {
             this.tradingButton.text = this.isTrading ? "Stop trading" : "Start trading";
         });
 
-        this.krongularButton = new TextButton("Krongular", new Rectangle(new Vector2(16, 254), new Vector2(240, 40)), () => {
-            this.resources.money -= this.krongularCost();
-            this.resources.autoStonksKrongularLevel++;
-        }, () => this.resources.money >= this.krongularCost());
+        this.economicsButton = new TextButton("Economics 101", new Rectangle(new Vector2(16, 254), new Vector2(240, 40)), () => {
+            this.resources.money -= this.economicsCost();
+            this.resources.autoStonksEconomicsLevel++;
+        }, () => this.resources.money >= this.economicsCost());
 
         this.marketPredictionButton = new TextButton("Market prediction", new Rectangle(new Vector2(16, 306), new Vector2(240, 40)), () => {
             this.resources.money -= this.marketPredictionCost();
@@ -89,7 +89,7 @@ export class AutoStonksPanel extends Panel {
 
         this.buttons = [
             this.tradingButton,
-            this.krongularButton,
+            this.economicsButton,
             this.marketPredictionButton,
             this.highFrequencyTradingButton,
             this.insiderTradingButton,
@@ -109,7 +109,7 @@ export class AutoStonksPanel extends Panel {
             }
 
             this.currentTradingTicks +=
-                this.resources.autoStonksKrongularLevel +
+                this.resources.autoStonksEconomicsLevel +
                 this.resources.autoStonksMarketPredictionLevel +
                 this.resources.autoStonksHighFrequencyTradingLevel +
                 this.resources.autoStonksInsiderTradingLevel +
@@ -123,7 +123,7 @@ export class AutoStonksPanel extends Panel {
         context.drawString("$" + numberWithPostfix(this.moneyPerTick() * GameBase.updatesPerSecond) + "/s", panelRectangle.topLeft().add(new Vector2(224, 24)), 32,
             Fonts.PixelOperator, GameColour.text, Align.TopLeft);
 
-        context.drawString("Cost: $" + numberWithPostfix(this.krongularCost()), panelRectangle.topLeft().add(new Vector2(272, 262)), 32,
+        context.drawString("Cost: $" + numberWithPostfix(this.economicsCost()), panelRectangle.topLeft().add(new Vector2(272, 262)), 32,
             Fonts.PixelOperator, GameColour.text, Align.TopLeft);
         context.drawString("Cost: $" + numberWithPostfix(this.marketPredictionCost()), panelRectangle.topLeft().add(new Vector2(272, 314)), 32,
             Fonts.PixelOperator, GameColour.text, Align.TopLeft);
@@ -139,8 +139,8 @@ export class AutoStonksPanel extends Panel {
         this.drawTradingDisplay(context, this.rectangles[this.rectangles.length - 1].rectangle.position.add(panelRectangle.topLeft().addNumber(2)));
     }
 
-    krongularCost() {
-        return Math.pow(3.3, this.resources.autoStonksKrongularLevel - 1) * 10_000_000_000;
+    economicsCost() {
+        return Math.pow(3.3, this.resources.autoStonksEconomicsLevel - 1) * 10_000_000_000;
     }
 
     marketPredictionCost() {
@@ -161,7 +161,7 @@ export class AutoStonksPanel extends Panel {
 
     moneyPerTick() {
         return 1_000_000_000 * GameBase.updateTime *
-            this.resources.autoStonksKrongularLevel *
+            this.resources.autoStonksEconomicsLevel *
             this.resources.autoStonksMarketPredictionLevel *
             this.resources.autoStonksHighFrequencyTradingLevel *
             this.resources.autoStonksInsiderTradingLevel *

@@ -13,7 +13,7 @@ export class Resources {
     hackinatorBotnetLevel = 1;
     hackinatorRansomwareLevel = 1;
 
-    autoStonksKrongularLevel = 1;
+    autoStonksEconomicsLevel = 1;
     autoStonksMarketPredictionLevel = 1;
     autoStonksHighFrequencyTradingLevel = 1;
     autoStonksInsiderTradingLevel = 1;
