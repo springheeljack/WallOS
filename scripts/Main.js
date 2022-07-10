@@ -1562,7 +1562,7 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
             this.startMenuOffset4 = 526;
             this.startMenuOffset5 = 524;
             this.startMenuEntries = [];
-            this.selectedEntries = [];
+            this.selectedEntry = null;
         }
         StartMenu.prototype.initialize = function (images, resources) {
             this.startImage = images.getImage(ImageNames_7.ImageNames.Start);
@@ -1581,31 +1581,33 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
             this.startMenuRectangle4.position.y = canvasSize.y - this.startMenuOffset4;
             this.startMenuRectangle5.position.y = canvasSize.y - this.startMenuOffset5;
             this.startImageRect.position = this.startButtonRect5.position.addNumber(2);
-            var newSelectedEntries = [];
             var installed = this.getInstalledPrograms();
             if (this.startMenuOpen) {
+                this.selectedEntry = null;
                 for (var i = 0; i < installed.length; i++) {
                     var entryRectangle = new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64));
                     if (entryRectangle.intersectsPoint(input.getMousePosition())) {
-                        newSelectedEntries.push(installed[i].id);
+                        this.selectedEntry = installed[i].id;
+                        break;
                     }
                 }
             }
-            this.selectedEntries = newSelectedEntries;
             if (input.hasUnusedClick(MouseButton_3.MouseButton.Left)) {
                 if (this.startButtonRect1.intersectsPoint(input.getMousePosition())) {
                     this.startMenuOpen = !this.startMenuOpen;
                     input.setClickUsed(MouseButton_3.MouseButton.Left);
                 }
                 else {
-                    for (var i = 0; i < installed.length; i++) {
-                        var entryRectangle = new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64));
-                        if (entryRectangle.intersectsPoint(input.getMousePosition())) {
-                            var entry = installed[i];
-                            if (entry.program != null) {
-                                runner.runProgram(entry.program);
-                                this.startMenuOpen = false;
-                                input.setClickUsed(MouseButton_3.MouseButton.Left);
+                    if (this.startMenuOpen) {
+                        for (var i = 0; i < installed.length; i++) {
+                            var entryRectangle = new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64));
+                            if (entryRectangle.intersectsPoint(input.getMousePosition())) {
+                                var entry = installed[i];
+                                if (entry.program != null) {
+                                    runner.runProgram(entry.program);
+                                    this.startMenuOpen = false;
+                                    input.setClickUsed(MouseButton_3.MouseButton.Left);
+                                }
                             }
                         }
                     }
@@ -1628,19 +1630,15 @@ define("Game/Classes/StartMenu", ["require", "exports", "Boilerplate/Classes/Rec
                 context.drawFillRectangle(this.startMenuRectangle3, GameColour_8.GameColour.greyscale50);
                 context.drawFillRectangle(this.startMenuRectangle4, GameColour_8.GameColour.greyscale100);
                 context.drawFillRectangle(this.startMenuRectangle5, GameColour_8.GameColour.greyscale75);
-                var installed_1 = this.getInstalledPrograms();
-                var _loop_1 = function (i) {
+                var installed = this.getInstalledPrograms();
+                for (var i = 0; i < installed.length; i++) {
                     var textColour = GameColour_8.GameColour.text;
-                    if (this_1.selectedEntries.some(function (x) { return x === installed_1[i].id; })) {
-                        context.drawFillRectangle(new Rectangle_7.Rectangle(new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 42, this_1.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64)), GameColour_8.GameColour.selected);
+                    if (this.selectedEntry === installed[i].id) {
+                        context.drawFillRectangle(new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2_12.Vector2(276, 64)), GameColour_8.GameColour.selected);
                         textColour = GameColour_8.GameColour.selectedText;
                     }
-                    context.drawImageRectangle(installed_1[i].image, new Rectangle_7.Rectangle(new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 62, this_1.startMenuRectangle5.position.y + 8 + 64 * i), new Vector2_12.Vector2(48, 48)));
-                    context.drawString(installed_1[i].name, new Vector2_12.Vector2(this_1.startMenuRectangle5.position.x + 130, this_1.startMenuRectangle5.position.y + 32 + 64 * i), 32, Fonts_8.Fonts.PixelOperator, textColour, Align_9.Align.Left);
-                };
-                var this_1 = this;
-                for (var i = 0; i < installed_1.length; i++) {
-                    _loop_1(i);
+                    context.drawImageRectangle(installed[i].image, new Rectangle_7.Rectangle(new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 62, this.startMenuRectangle5.position.y + 8 + 64 * i), new Vector2_12.Vector2(48, 48)));
+                    context.drawString(installed[i].name, new Vector2_12.Vector2(this.startMenuRectangle5.position.x + 130, this.startMenuRectangle5.position.y + 32 + 64 * i), 32, Fonts_8.Fonts.PixelOperator, textColour, Align_9.Align.Left);
                 }
             }
         };

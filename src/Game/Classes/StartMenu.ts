@@ -45,7 +45,7 @@ export class StartMenu {
     private startMenuOffset5 = 524;
 
     private startMenuEntries: StartMenuEntry[] = [];
-    private selectedEntries: number[] = [];
+    private selectedEntry: number = null;
 
     initialize(images: Images, resources: Resources) {
         this.startImage = images.getImage(ImageNames.Start);
@@ -70,20 +70,19 @@ export class StartMenu {
 
         this.startImageRect.position = this.startButtonRect5.position.addNumber(2);
 
-        const newSelectedEntries: number[] = [];
-
         const installed = this.getInstalledPrograms();
 
         if (this.startMenuOpen) {
+            this.selectedEntry = null;
+
             for (let i = 0; i < installed.length; i++) {
                 const entryRectangle = new Rectangle(new Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2(276, 64));
                 if (entryRectangle.intersectsPoint(input.getMousePosition())) {
-                    newSelectedEntries.push(installed[i].id);
+                    this.selectedEntry = installed[i].id;
+                    break;
                 }
             }
         }
-
-        this.selectedEntries = newSelectedEntries;
 
         if (input.hasUnusedClick(MouseButton.Left)) {
             if (this.startButtonRect1.intersectsPoint(input.getMousePosition())) {
@@ -91,14 +90,16 @@ export class StartMenu {
                 input.setClickUsed(MouseButton.Left);
             }
             else {
-                for (let i = 0; i < installed.length; i++) {
-                    const entryRectangle = new Rectangle(new Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2(276, 64));
-                    if (entryRectangle.intersectsPoint(input.getMousePosition())) {
-                        const entry = installed[i];
-                        if (entry.program != null) {
-                            runner.runProgram(entry.program);
-                            this.startMenuOpen = false;
-                            input.setClickUsed(MouseButton.Left);
+                if (this.startMenuOpen) {
+                    for (let i = 0; i < installed.length; i++) {
+                        const entryRectangle = new Rectangle(new Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2(276, 64));
+                        if (entryRectangle.intersectsPoint(input.getMousePosition())) {
+                            const entry = installed[i];
+                            if (entry.program != null) {
+                                runner.runProgram(entry.program);
+                                this.startMenuOpen = false;
+                                input.setClickUsed(MouseButton.Left);
+                            }
                         }
                     }
                 }
@@ -130,7 +131,7 @@ export class StartMenu {
 
             for (let i = 0; i < installed.length; i++) {
                 let textColour = GameColour.text;
-                if (this.selectedEntries.some(x => x === installed[i].id)) {
+                if (this.selectedEntry === installed[i].id) {
                     context.drawFillRectangle(new Rectangle(new Vector2(this.startMenuRectangle5.position.x + 42, this.startMenuRectangle5.position.y + 64 * i), new Vector2(276, 64)), GameColour.selected);
                     textColour = GameColour.selectedText;
                 }
