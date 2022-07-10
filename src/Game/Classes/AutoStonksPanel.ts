@@ -140,23 +140,23 @@ export class AutoStonksPanel extends Panel {
     }
 
     krongularCost() {
-        return Math.pow(2.2, this.resources.autoStonksKrongularLevel - 1) * 100_000;
+        return Math.pow(3.3, this.resources.autoStonksKrongularLevel - 1) * 10_000_000_000;
     }
 
     marketPredictionCost() {
-        return Math.pow(3.3, this.resources.autoStonksMarketPredictionLevel) * 100_000;
+        return Math.pow(4.4, this.resources.autoStonksMarketPredictionLevel) * 10_000_000_000;
     }
 
     highFrequencyTradingCost() {
-        return Math.pow(4.4, this.resources.autoStonksHighFrequencyTradingLevel + 1) * 100_000;
+        return Math.pow(5.5, this.resources.autoStonksHighFrequencyTradingLevel + 1) * 10_000_000_000;
     }
 
     insiderTradingCost() {
-        return Math.pow(5.5, this.resources.autoStonksInsiderTradingLevel + 2) * 100_000;
+        return Math.pow(6.6, this.resources.autoStonksInsiderTradingLevel + 2) * 10_000_000_000;
     }
 
     pumpAndDumpCost() {
-        return Math.pow(6.6, this.resources.autoStonksPumpAndDumpLevel + 3) * 100_000;
+        return Math.pow(7.7, this.resources.autoStonksPumpAndDumpLevel + 3) * 10_000_000_000;
     }
 
     moneyPerTick() {

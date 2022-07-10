@@ -802,7 +802,7 @@ define("Game/Classes/Resources", ["require", "exports"], function (require, expo
     exports.Resources = void 0;
     var Resources = /** @class */ (function () {
         function Resources() {
-            this.money = 10;
+            this.money = 1;
             this.cryptCoinMinerAlgorithmLevel = 1;
             this.cryptCoinMinerHashLevel = 1;
             this.cryptCoinMinerCpuLevel = 1;
@@ -1003,19 +1003,19 @@ define("Game/Classes/AutoStonksPanel", ["require", "exports", "Boilerplate/Modul
             this.drawTradingDisplay(context, this.rectangles[this.rectangles.length - 1].rectangle.position.add(panelRectangle.topLeft().addNumber(2)));
         };
         AutoStonksPanel.prototype.krongularCost = function () {
-            return Math.pow(2.2, this.resources.autoStonksKrongularLevel - 1) * 100000;
+            return Math.pow(3.3, this.resources.autoStonksKrongularLevel - 1) * 10000000000;
         };
         AutoStonksPanel.prototype.marketPredictionCost = function () {
-            return Math.pow(3.3, this.resources.autoStonksMarketPredictionLevel) * 100000;
+            return Math.pow(4.4, this.resources.autoStonksMarketPredictionLevel) * 10000000000;
         };
         AutoStonksPanel.prototype.highFrequencyTradingCost = function () {
-            return Math.pow(4.4, this.resources.autoStonksHighFrequencyTradingLevel + 1) * 100000;
+            return Math.pow(5.5, this.resources.autoStonksHighFrequencyTradingLevel + 1) * 10000000000;
         };
         AutoStonksPanel.prototype.insiderTradingCost = function () {
-            return Math.pow(5.5, this.resources.autoStonksInsiderTradingLevel + 2) * 100000;
+            return Math.pow(6.6, this.resources.autoStonksInsiderTradingLevel + 2) * 10000000000;
         };
         AutoStonksPanel.prototype.pumpAndDumpCost = function () {
-            return Math.pow(6.6, this.resources.autoStonksPumpAndDumpLevel + 3) * 100000;
+            return Math.pow(7.7, this.resources.autoStonksPumpAndDumpLevel + 3) * 10000000000;
         };
         AutoStonksPanel.prototype.moneyPerTick = function () {
             return 1000000000 * GameBase_1.GameBase.updateTime *
@@ -1393,7 +1393,7 @@ define("Game/Classes/ProgramShopPanel", ["require", "exports", "Boilerplate/Clas
             var _this = _super.call(this, Programs_4.Programs.ProgramShop, "Program Shop", images.getImage(ImageNames_5.ImageNames.ProgramShop), new Vector2_10.Vector2(900, 0), new Vector2_10.Vector2(664, 400), images) || this;
             _this.resources = resources;
             _this.input = input;
-            _this.cryptCoinMinerCost = 10;
+            _this.cryptCoinMinerCost = 1;
             _this.hackinatorCost = 100000;
             _this.autoStonksCost = 10000000000;
             _this.purchaseCryptCoinMinerButton = new TextButton_4.TextButton("Purchase", new Rectangle_6.Rectangle(new Vector2_10.Vector2(480, 16), new Vector2_10.Vector2(160, 40)), function () {

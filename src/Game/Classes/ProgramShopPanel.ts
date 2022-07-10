@@ -18,7 +18,7 @@ export class ProgramShopPanel extends Panel {
     pictures: Picture[];
     text: Text[];
 
-    cryptCoinMinerCost = 10;
+    cryptCoinMinerCost = 1;
     purchaseCryptCoinMinerButton: TextButton;
     hackinatorCost = 100_000;
     purchaseHackinatorButton: TextButton;
